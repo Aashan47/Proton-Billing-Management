@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Buttons</title>
+</head>
+<body>
+    <button onclick="testFunction()">Test Button</button>
+    <button onclick="addServiceItem()">Add Service Item</button>
+    <button onclick="generatePDF()">Generate PDF</button>
+    
+    <div id="itemsContainer"></div>
+    
+    <script>
+        function testFunction() {
+            alert('Test function works!');
+        }
+        
+        // Check if script.js loads properly
+        console.log('Loading script.js...');
+    </script>
+    <script src="script.js"></script>
+    
+    <script>
+        // Test if functions are available
+        setTimeout(() => {
+            console.log('addServiceItem function:', typeof addServiceItem);
+            console.log('generatePDF function:', typeof generatePDF);
+            console.log('previewInvoice function:', typeof previewInvoice);
+            console.log('clearForm function:', typeof clearForm);
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Proton Media Professional Billing Generator - Create professional invoices for film and media services">
+    <meta name="keywords" content="invoice, billing, proton media, film services, media services">
+    <title>Proton Media - Professional Billing Generator</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- PDF Generation Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="Img.png">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="company-info">
+                <div class="brand-container">
+                    <img src="Img.png" alt="Proton Studio Logo" class="company-logo">
+                    <div class="company-text">
+                        <h1>Proton Studio</h1>
+                        <p>Professional Film & Media Services</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="invoice-badge">
+                    <span class="badge-text">Invoice Generator</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="billing-form">
+                <h2>Create New Invoice</h2>
+                
+                <!-- Invoice Details -->
+                <div class="form-section">
+                    <h3>Invoice Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="invoiceNumber">Invoice Number</label>
+                            <input type="text" id="invoiceNumber" value="INV-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="invoiceDate">Invoice Date</label>
+                            <input type="date" id="invoiceDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="dueDate">Due Date</label>
+                            <input type="date" id="dueDate" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Information -->
+                <div class="form-section">
+                    <h3>Client Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Client Name</label>
+                            <input type="text" id="clientName" placeholder="Enter client name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email</label>
+                            <input type="email" id="clientEmail" placeholder="client@example.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientPhone">Phone</label>
+                            <input type="tel" id="clientPhone" placeholder="(555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label for="clientCompany">Company</label>
+                            <input type="text" id="clientCompany" placeholder="Client Company Name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientAddress">Address</label>
+                        <textarea id="clientAddress" placeholder="Client address" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Service Items -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <h3>Service Items</h3>
+                        <button type="button" class="btn btn-secondary" onclick="addServiceItem()">+ Add Item</button>
+                    </div>
+                    
+                    <div class="items-container" id="itemsContainer">
+                        <!-- Service items will be added here dynamically -->
+                    </div>
+                    
+                    <div class="totals-section">
+                        <div class="totals-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">PKR 0.00</span>
+                        </div>
+                        <div class="totals-row">
+                            <span>Total Discount:</span>
+                            <span id="totalDiscount">PKR 0.00</span>
+                        </div>
+                        <div class="totals-row total">
+                            <span>Total Amount:</span>
+                            <span id="totalAmount">PKR 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Instructions -->
+                <div class="form-section">
+                    <h3>Payment Instructions</h3>
+                    <div class="form-group">
+                        <label for="paymentInstructions">Payment Instructions</label>
+                        <textarea id="paymentInstructions" placeholder="Enter payment instructions..." rows="4"></textarea>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="actions">
+                    <button type="button" class="btn btn-primary" onclick="generatePDF()">Generate PDF Invoice</button>
+                    <button type="button" class="btn btn-secondary" onclick="previewInvoice()">Preview Invoice</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
+                </div>
+            </section>
+            
+            <!-- Preview Modal -->
+            <div id="previewModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Invoice Preview</h3>
+                        <span class="close" onclick="closePreview()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="previewContent">
+                        <!-- Preview content will be inserted here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="generatePDF()">Generate PDF</button>
+                        <button type="button" class="btn btn-secondary" onclick="closePreview()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
