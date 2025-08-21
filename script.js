@@ -6,6 +6,7 @@ let serviceItems = [];
 document.addEventListener('DOMContentLoaded', function() {
     initializeForm();
     addServiceItem(); // Add first item by default
+    toggleDiscountVisibility(); // Initialize discount visibility
 });
 
 // Initialize form with default values
@@ -53,7 +54,7 @@ function addServiceItem() {
             </div>
             <div class="form-group">
                 <label>Discount (%)</label>
-                <input type="number" class="item-discount" step="0.01" min="0" max="100" value="0" onchange="calculateItemTotal(${itemCounter}); calculateTotals()">
+                <input type="number" class="item-discount" step="0.01" min="0" max="100" value="0" placeholder="Optional" onchange="calculateItemTotal(${itemCounter}); calculateTotals(); toggleDiscountVisibility()">
             </div>
         </div>
         <div class="item-total">
@@ -158,6 +159,29 @@ function calculateTotals() {
     document.getElementById('subtotal').textContent = `PKR ${subtotal.toFixed(2)}`;
     document.getElementById('totalDiscount').textContent = `PKR ${totalDiscount.toFixed(2)}`;
     document.getElementById('totalAmount').textContent = `PKR ${totalAmount.toFixed(2)}`;
+    
+    // Toggle discount row visibility
+    toggleDiscountVisibility();
+}
+
+// Toggle discount visibility based on whether any discounts are applied
+function toggleDiscountVisibility() {
+    let hasDiscount = false;
+    
+    // Check if any item has a discount greater than 0
+    const discountInputs = document.querySelectorAll('.item-discount');
+    discountInputs.forEach(input => {
+        const discountValue = parseFloat(input.value) || 0;
+        if (discountValue > 0) {
+            hasDiscount = true;
+        }
+    });
+    
+    // Show/hide the discount row in totals
+    const discountRow = document.querySelector('.totals-row:nth-child(2)'); // Total Discount row
+    if (discountRow) {
+        discountRow.style.display = hasDiscount ? 'flex' : 'none';
+    }
 }
 
 // Generate PDF invoice
@@ -196,34 +220,34 @@ function generatePDF() {
         const logoImg = document.querySelector('.company-logo');
         if (logoImg && logoImg.complete) {
             try {
-                // Better positioned logo
-                doc.addImage(logoImg.src, 'PNG', 20, 12, 20, 20);
+                // Much larger logo size
+                doc.addImage(logoImg.src, 'PNG', 20, 12, 40, 40);
             } catch (error) {
                 console.warn('Could not add logo to PDF:', error);
             }
         }
         
         // Enhanced company header with better typography
-        doc.setFontSize(18);
+        doc.setFontSize(10);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(26, 32, 44); // Dark gray
-        doc.text('Proton Studio', 45, 22);
+        doc.text('Proton Studio', 65, 22); // Adjusted position for much larger logo
         
         // Company tagline
-        doc.setFontSize(9);
+        doc.setFontSize(7);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(113, 128, 150); // Medium gray
-        doc.text('Professional Film & Media Services', 45, 28);
+        doc.text('Professional Film & Media Services', 65, 28);
         
         // Company address with improved formatting
-        doc.setFontSize(8);
+        doc.setFontSize(6);
         doc.setTextColor(113, 128, 150);
-        doc.text('1401 Bahria Orchard, Lahore, Punjab 54000', 45, 34);
-        doc.text('Email: info@protonstudio.com | Phone: +92 300 1234567', 45, 39);
+        doc.text('1401 Bahria Orchard, Lahore, Punjab 54000', 65, 34);
+        doc.text('Email: info@protonstudio.com | Phone: +92 300 1234567', 65, 39);
         
         // Enhanced Invoice Title Section with better positioning
-        const invoiceBoxWidth = 50;
-        const invoiceBoxX = 155;
+        const invoiceBoxWidth = 30;
+        const invoiceBoxX = 125;
         
         // Enhanced invoice title section with background
         doc.setFillColor(111, 115, 120); // Gray background
@@ -233,12 +257,12 @@ function generatePDF() {
         doc.setFontSize(14);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(255, 255, 255); // White text
-        doc.text('INVOICE', invoiceBoxX + (invoiceBoxWidth/2), 20, { align: 'center' });
+        doc.text('INVOICE', invoiceBoxX + (invoiceBoxWidth/2), 20, { align: 'right' });
         
         // Invoice number with styling
         doc.setFontSize(10);
         doc.setFont(undefined, 'normal');
-        doc.text(`#${invoiceData.invoiceNumber}`, invoiceBoxX + (invoiceBoxWidth/2), 27, { align: 'center' });
+        doc.text(`#${invoiceData.invoiceNumber}`, invoiceBoxX + (invoiceBoxWidth/2), 27, { align: 'right' });
         
         // Due date badge
         doc.setFontSize(7);
@@ -672,22 +696,25 @@ function previewInvoice() {
     }, 0);
     const totalAmount = subtotal - totalDiscount;
     
+    // Check if any items have discounts
+    const hasDiscounts = serviceItems.some(item => item.discount > 0);
+    
     // Generate preview HTML with exact PDF layout
     previewContent.innerHTML = `
         <div class="preview-invoice">
-            <div class="preview-header" style="padding: 15px 20px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%); border-top: 3px solid #4299e1; margin-bottom: 25px;">
+            <div class="preview-header" style="padding: 15px 20px; background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%); border-top: 3px solid #6F7378; margin-bottom: 25px;">
                 <div class="preview-company">
-                    <img src="Img.png" alt="Proton Studio Logo" style="width: 50px; height: 50px;">
+                    <img src="Img.png" alt="Proton Studio Logo" style="width: 120px; height: 120px; object-fit: contain; margin-right: 20px;">
                     <div class="preview-company-text">
-                        <h1 style="font-size: 1.3rem; margin-bottom: 3px;">Proton Studio</h1>
-                        <p style="font-size: 0.75rem; margin: 1px 0;">Professional Film & Media Services</p>
-                        <p style="font-size: 0.7rem; color: #718096; margin: 1px 0;">1401 Bahria Orchard, Lahore, Punjab 54000</p>
-                        <p style="font-size: 0.7rem; color: #718096; margin: 1px 0;">Email: info@protonstudio.com | Phone: +92 300 1234567</p>
+                        <h1 style="font-size: 1.8rem; margin-bottom: 8px; color: #2d3748; font-weight: bold;">Proton Studio</h1>
+                        <p style="font-size: 1.1rem; margin: 5px 0; color: #4a5568; font-weight: 500;">Professional Film & Media Services</p>
+                        <p style="font-size: 0.95rem; color: #718096; margin: 3px 0;">1401 Bahria Orchard, Lahore, Punjab 54000</p>
+                        <p style="font-size: 0.95rem; color: #718096; margin: 3px 0;">Email: info@protonstudio.com | Phone: +92 300 1234567</p>
                     </div>
                 </div>
                 <div class="preview-invoice-info">
-                    <div class="preview-invoice-title" style="padding: 8px 15px; font-size: 1rem; margin-bottom: 8px;">INVOICE #${invoiceData.invoiceNumber}</div>
-                    <p style="font-size: 0.75rem; margin: 2px 0;"><strong>Due:</strong> ${formatDate(invoiceData.dueDate)}</p>
+                    <div class="preview-invoice-title" style="background: #4299e1; color: white; padding: 8px 15px; font-size: 1.1rem; margin-bottom: 10px; border-radius: 6px; font-weight: bold;">INVOICE #${invoiceData.invoiceNumber}</div>
+                    <p style="font-size: 0.85rem; margin: 4px 0; color: #4a5568;"><strong>Due:</strong> ${formatDate(invoiceData.dueDate)}</p>
                 </div>
             </div>
             
@@ -709,11 +736,11 @@ function previewInvoice() {
             <table class="preview-table" style="margin: 15px 0; font-size: 0.85rem;">
                 <thead>
                     <tr>
-                        <th style="text-align: left; width: 42%; padding: 8px 6px; font-size: 0.8rem;">DESCRIPTION</th>
-                        <th style="text-align: center; width: 12%; padding: 8px 6px; font-size: 0.8rem;">QTY</th>
-                        <th style="text-align: right; width: 15%; padding: 8px 6px; font-size: 0.8rem;">PRICE</th>
-                        <th style="text-align: right; width: 15%; padding: 8px 6px; font-size: 0.8rem;">DISCOUNT</th>
-                        <th style="text-align: right; width: 16%; padding: 8px 6px; font-size: 0.8rem;">TOTAL</th>
+                        <th style="text-align: left; width: ${hasDiscounts ? '42%' : '52%'}; padding: 8px 6px; font-size: 0.8rem;">DESCRIPTION</th>
+                        <th style="text-align: center; width: ${hasDiscounts ? '12%' : '15%'}; padding: 8px 6px; font-size: 0.8rem;">QTY</th>
+                        <th style="text-align: right; width: ${hasDiscounts ? '15%' : '18%'}; padding: 8px 6px; font-size: 0.8rem;">PRICE</th>
+                        ${hasDiscounts ? '<th style="text-align: right; width: 15%; padding: 8px 6px; font-size: 0.8rem;">DISCOUNT</th>' : ''}
+                        <th style="text-align: right; width: ${hasDiscounts ? '16%' : '15%'}; padding: 8px 6px; font-size: 0.8rem;">TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -726,7 +753,7 @@ function previewInvoice() {
                                 <td style="text-align: left; padding: 6px; font-size: 0.8rem;">${item.description}</td>
                                 <td style="text-align: center; padding: 6px; font-size: 0.8rem;">${item.quantity}</td>
                                 <td style="text-align: right; padding: 6px; font-size: 0.8rem;">PKR ${item.price.toFixed(2)}</td>
-                                <td style="text-align: right; padding: 6px; font-size: 0.8rem; color: #f56565;">PKR ${itemDiscount.toFixed(2)}</td>
+                                ${hasDiscounts ? `<td style="text-align: right; padding: 6px; font-size: 0.8rem; color: #f56565;">PKR ${itemDiscount.toFixed(2)}</td>` : ''}
                                 <td style="text-align: right; padding: 6px; font-size: 0.8rem; font-weight: bold; color: #4299e1;">PKR ${itemTotal.toFixed(2)}</td>
                             </tr>
                         `;
@@ -740,12 +767,14 @@ function previewInvoice() {
                         <span>Subtotal:</span>
                         <span style="color: #2d3748;">PKR ${subtotal.toFixed(2)}</span>
                     </div>
+                    ${hasDiscounts ? `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; color: #718096;">
                         <span>Discount:</span>
                         <span style="color: #f56565;">-PKR ${totalDiscount.toFixed(2)}</span>
                     </div>
-                    <div style="background: #4299e1; color: white; padding: 8px 10px; border-radius: 3px; margin: -12px -12px -12px -12px; margin-top: 6px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem; align-items: center;">
+                    ` : ''}
+                    <div style="background: #4299e1; color: white; padding: 10px 12px; border-radius: 6px; margin: -12px -12px -12px -12px; margin-top: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem; align-items: center;">
                             <span>AMOUNT DUE:</span>
                             <span>PKR ${totalAmount.toFixed(2)}</span>
                         </div>
@@ -838,3 +867,274 @@ document.addEventListener('input', function() {
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(loadAutoSaved, 1000); // Load after initialization
 });
+
+// Download invoice as styled PDF (using html2canvas + jsPDF)
+async function downloadAsStyledPDF() {
+    let tempPreview = false;
+    let tempContainer = null;
+    
+    try {
+        console.log('Starting PDF generation...');
+        
+        // Validate form first
+        if (!validateForm()) {
+            console.log('Form validation failed');
+            return;
+        }
+
+        console.log('Form validation passed');
+
+        // Check if preview is open, if not create temporary preview
+        let previewElement = document.querySelector('.preview-invoice');
+        
+        if (!previewElement) {
+            console.log('Creating temporary preview...');
+            // Create temporary preview
+            tempPreview = true;
+            const invoiceData = getFormData();
+            console.log('Invoice data:', invoiceData);
+            tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = '800px';
+            tempContainer.style.background = 'white';
+            tempContainer.style.padding = '20px';
+            
+            // Calculate totals
+            const subtotal = serviceItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalDiscount = serviceItems.reduce((sum, item) => {
+                const itemSubtotal = item.price * item.quantity;
+                return sum + (itemSubtotal * (item.discount / 100));
+            }, 0);
+            const totalAmount = subtotal - totalDiscount;
+            
+            // Check if any items have discounts
+            const hasDiscounts = serviceItems.some(item => item.discount > 0);
+        
+        // Generate the same preview HTML
+        tempContainer.innerHTML = `
+            <div class="preview-invoice">
+                <div class="preview-header" style="padding: 15px 20px; background: #f8fafc; border-top: 3px solid #6F7378; margin-bottom: 25px; border-radius: 8px;">
+                    <div class="preview-company">
+                        <img src="Img.png" alt="Proton Studio Logo" style="width: 120px; height: 120px; object-fit: contain; margin-right: 20px;">
+                        <div class="preview-company-text">
+                            <h1 style="font-size: 1.8rem; margin-bottom: 8px; color: #2d3748; font-weight: bold;">Proton Studio</h1>
+                            <p style="font-size: 1.1rem; margin: 5px 0; color: #4a5568; font-weight: 500;">Professional Film & Media Services</p>
+                            <p style="font-size: 0.95rem; color: #718096; margin: 3px 0;">1401 Bahria Orchard, Lahore, Punjab 54000</p>
+                            <p style="font-size: 0.95rem; color: #718096; margin: 3px 0;">Email: info@protonstudio.com | Phone: +92 300 1234567</p>
+                        </div>
+                    </div>
+                    <div class="preview-invoice-info">
+                        <div class="preview-invoice-title" style="background: #6F7378; color: white; padding: 12px 20px; font-size: 1.1rem; margin-bottom: 10px; border-radius: 6px; font-weight: bold;">INVOICE #${invoiceData.invoiceNumber}</div>
+                        <p style="font-size: 0.85rem; margin: 4px 0; color: #4a5568;"><strong>Due:</strong> ${formatDate(invoiceData.dueDate)}</p>
+                    </div>
+                </div>
+                
+                <div class="preview-client-info" style="margin-bottom: 20px;">
+                    <div class="preview-section">
+                        <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">BILL TO</h3>
+                        <p style="font-weight: bold; margin: 4px 0;">${invoiceData.clientName}</p>
+                        ${invoiceData.clientEmail ? `<p style="font-size: 0.8rem; margin: 2px 0;">Email: ${invoiceData.clientEmail}</p>` : ''}
+                        ${invoiceData.clientCompany ? `<p style="font-size: 0.8rem; margin: 2px 0;">Company: ${invoiceData.clientCompany}</p>` : ''}
+                        ${invoiceData.clientPhone ? `<p style="font-size: 0.8rem; margin: 2px 0;">Phone: ${invoiceData.clientPhone}</p>` : ''}
+                        ${invoiceData.clientAddress ? `<p style="font-size: 0.8rem; margin: 2px 0;">Address:<br>&nbsp;&nbsp;&nbsp;${invoiceData.clientAddress.replace(/\n/g, '<br>&nbsp;&nbsp;&nbsp;')}</p>` : ''}
+                    </div>
+                    <div class="preview-section">
+                        <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">INVOICE DATE</h3>
+                        <p style="font-weight: bold; margin: 4px 0;">${formatDate(invoiceData.invoiceDate)}</p>
+                    </div>
+                </div>
+                
+                <table class="preview-table" style="margin: 15px 0; font-size: 0.85rem;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left; width: ${hasDiscounts ? '42%' : '52%'}; padding: 8px 6px; font-size: 0.8rem;">DESCRIPTION</th>
+                            <th style="text-align: center; width: ${hasDiscounts ? '12%' : '15%'}; padding: 8px 6px; font-size: 0.8rem;">QTY</th>
+                            <th style="text-align: right; width: ${hasDiscounts ? '15%' : '18%'}; padding: 8px 6px; font-size: 0.8rem;">PRICE</th>
+                            ${hasDiscounts ? '<th style="text-align: right; width: 15%; padding: 8px 6px; font-size: 0.8rem;">DISCOUNT</th>' : ''}
+                            <th style="text-align: right; width: ${hasDiscounts ? '16%' : '15%'}; padding: 8px 6px; font-size: 0.8rem;">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${serviceItems.filter(item => item.description).map(item => {
+                            const itemSubtotal = item.price * item.quantity;
+                            const itemDiscount = itemSubtotal * (item.discount / 100);
+                            const itemTotal = itemSubtotal - itemDiscount;
+                            return `
+                                <tr>
+                                    <td style="text-align: left; padding: 6px; font-size: 0.8rem;">${item.description}</td>
+                                    <td style="text-align: center; padding: 6px; font-size: 0.8rem;">${item.quantity}</td>
+                                    <td style="text-align: right; padding: 6px; font-size: 0.8rem;">PKR ${item.price.toFixed(2)}</td>
+                                    ${hasDiscounts ? `<td style="text-align: right; padding: 6px; font-size: 0.8rem; color: #f56565;">PKR ${itemDiscount.toFixed(2)}</td>` : ''}
+                                    <td style="text-align: right; padding: 6px; font-size: 0.8rem; font-weight: bold; color: #6F7378;">PKR ${itemTotal.toFixed(2)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="preview-totals">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; margin-top: 15px; width: 260px; margin-left: auto;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem; color: #718096;">
+                            <span>Subtotal:</span>
+                            <span style="color: #2d3748;">PKR ${subtotal.toFixed(2)}</span>
+                        </div>
+                        ${hasDiscounts ? `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; color: #718096;">
+                            <span>Discount:</span>
+                            <span style="color: #f56565;">-PKR ${totalDiscount.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                        <div style="background: #6F7378; color: white; padding: 10px 12px; border-radius: 6px; margin: -12px -12px -12px -12px; margin-top: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem; align-items: center;">
+                                <span>AMOUNT DUE:</span>
+                                <span>PKR ${totalAmount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                ${invoiceData.paymentInstructions ? `
+                    <div class="preview-section" style="margin-top: 25px;">
+                        <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">PAYMENT INSTRUCTIONS</h3>
+                        <p style="background: #f8fafc; padding: 12px; border-radius: 6px; line-height: 1.4; font-size: 0.85rem;">${invoiceData.paymentInstructions}</p>
+                    </div>
+                ` : ''}
+                
+                <div style="text-align: center; margin-top: 25px; padding: 12px; background: #f8fafc; border-radius: 6px; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #718096; font-size: 0.75rem; margin: 3px 0;">Thank you for choosing Proton Studio!</p>
+                    <p style="color: #718096; font-size: 0.75rem; margin: 3px 0;">Professional • Reliable • Creative</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(tempContainer);
+        previewElement = tempContainer.querySelector('.preview-invoice');
+    }
+
+    // Show loading state
+    let downloadBtn = null;
+    let originalText = '';
+    
+    // Try to find the button that was clicked
+    if (typeof event !== 'undefined' && event.target) {
+        downloadBtn = event.target;
+        originalText = downloadBtn.textContent;
+        downloadBtn.textContent = 'Generating PDF...';
+        downloadBtn.disabled = true;
+    } else {
+        // Fallback: find the main generate button
+        downloadBtn = document.querySelector('.btn-primary');
+        if (downloadBtn) {
+            originalText = downloadBtn.textContent;
+            downloadBtn.textContent = 'Generating PDF...';
+            downloadBtn.disabled = true;
+        }
+    }
+
+        // Create high-quality canvas with more restrictive options
+        const canvas = await html2canvas(previewElement, {
+            scale: 1.5, // Reduced scale to avoid memory issues
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: previewElement.scrollWidth,
+            height: previewElement.scrollHeight,
+            logging: false, // Disable console logging
+            removeContainer: true,
+            foreignObjectRendering: false, // Disable foreign object rendering
+            imageTimeout: 0,
+            onclone: function(clonedDoc) {
+                // Remove all gradients from the cloned document
+                const clonedElements = clonedDoc.querySelectorAll('*');
+                clonedElements.forEach(element => {
+                    const computedStyle = window.getComputedStyle(element);
+                    if (computedStyle.backgroundImage && computedStyle.backgroundImage.includes('gradient')) {
+                        element.style.backgroundImage = 'none';
+                        element.style.backgroundColor = '#ffffff';
+                    }
+                    if (computedStyle.background && computedStyle.background.includes('gradient')) {
+                        element.style.background = '#ffffff';
+                    }
+                });
+            },
+            ignoreElements: (element) => {
+                // Skip elements that might cause issues
+                return element.classList && (
+                    element.classList.contains('skip-pdf') ||
+                    element.classList.contains('modal') ||
+                    element.classList.contains('btn') ||
+                    element.tagName === 'SCRIPT' ||
+                    element.tagName === 'STYLE'
+                );
+            }
+        });
+
+        // Create PDF with the canvas image
+        const { jsPDF } = window.jspdf;
+        const imgData = canvas.toDataURL('image/png');
+        
+        // Calculate dimensions to fit the page
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(190 / imgWidth, 270 / imgHeight); // A4 margins
+        
+        const pdfWidth = imgWidth * ratio;
+        const pdfHeight = imgHeight * ratio;
+        
+        // Create PDF with appropriate size
+        const orientation = pdfHeight > pdfWidth ? 'portrait' : 'landscape';
+        const doc = new jsPDF({
+            orientation: orientation,
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // Center the image on the page
+        const x = (doc.internal.pageSize.getWidth() - pdfWidth) / 2;
+        const y = (doc.internal.pageSize.getHeight() - pdfHeight) / 2;
+        
+        doc.addImage(imgData, 'PNG', x, y, pdfWidth, pdfHeight);
+
+        // Save the PDF
+        const invoiceData = getFormData();
+        const fileName = `Invoice_${invoiceData.invoiceNumber}_${invoiceData.clientName || 'Client'}.pdf`;
+        doc.save(fileName);
+
+        showSuccessMessage('PDF invoice generated successfully!');
+
+        // Reset button state
+        if (downloadBtn) {
+            downloadBtn.textContent = originalText || 'Generate PDF Invoice';
+            downloadBtn.disabled = false;
+        }
+
+        // Clean up temporary preview
+        if (tempPreview && tempContainer) {
+            document.body.removeChild(tempContainer);
+        }
+
+    } catch (error) {
+        console.error('Error generating styled PDF:', error);
+        alert('Error generating PDF. Please try again.');
+        
+        // Reset button state
+        let downloadBtn = null;
+        if (typeof event !== 'undefined' && event.target) {
+            downloadBtn = event.target;
+        } else {
+            downloadBtn = document.querySelector('.btn-primary');
+        }
+        
+        if (downloadBtn) {
+            downloadBtn.textContent = 'Generate PDF Invoice';
+            downloadBtn.disabled = false;
+        }
+        
+        // Clean up temporary preview
+        if (tempPreview && tempContainer && document.body.contains(tempContainer)) {
+            document.body.removeChild(tempContainer);
+        }
+    }
+}

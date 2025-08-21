@@ -55,8 +55,8 @@ body {
 }
 
 .company-logo {
-    width: 120px;
-    height: 120px;
+    width: 50px;
+    height: 50px;
     object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
     transition: transform 0.3s ease;
@@ -456,8 +456,8 @@ body {
     }
     
     .company-logo {
-        width: 90px;
-        height: 90px;
+        width: 45px;
+        height: 45px;
     }
     
     .company-text h1 {
@@ -540,8 +540,8 @@ body {
     }
     
     .company-logo {
-        width: 70px;
-        height: 70px;
+        width: 40px;
+        height: 40px;
     }
     
     .billing-form h2 {
@@ -738,7 +738,7 @@ body {
 }
 
 .preview-invoice-info {
-    text-align: right;
+    text-align: left;
 }
 
 .preview-invoice-title {

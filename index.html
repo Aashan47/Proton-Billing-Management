@@ -18,6 +18,7 @@
     <!-- PDF Generation Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="Img.png">
@@ -131,8 +132,8 @@
 
                 <!-- Actions -->
                 <div class="actions">
-                    <button type="button" class="btn btn-primary" onclick="generatePDF()">Generate PDF Invoice</button>
-                    <button type="button" class="btn btn-secondary" onclick="previewInvoice()">Preview Invoice</button>
+                    <!-- <button type="button" class="btn btn-primary" onclick="downloadAsStyledPDF()">Generate PDF Invoice</button> -->
+                    <button type="button" class="btn btn-primary" onclick="previewInvoice()">Preview Invoice</button>
                     <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
                 </div>
             </section>
@@ -148,7 +149,7 @@
                         <!-- Preview content will be inserted here -->
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="generatePDF()">Generate PDF</button>
+                        <button type="button" class="btn btn-primary" onclick="downloadAsStyledPDF()">Download PDF</button>
                         <button type="button" class="btn btn-secondary" onclick="closePreview()">Close</button>
                     </div>
                 </div>
