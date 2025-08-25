@@ -1011,6 +1011,14 @@ async function downloadAsStyledPDF() {
         
         document.body.appendChild(tempContainer);
         previewElement = tempContainer.querySelector('.preview-invoice');
+        
+        // Ensure element is properly attached and wait a moment for DOM update
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    // Verify previewElement exists
+    if (!previewElement) {
+        throw new Error('Preview element not found');
     }
 
     // Show loading state
@@ -1033,41 +1041,34 @@ async function downloadAsStyledPDF() {
         }
     }
 
-        // Create high-quality canvas with more restrictive options
+        // Create high-quality canvas with simplified options
         const canvas = await html2canvas(previewElement, {
-            scale: 1.5, // Reduced scale to avoid memory issues
+            scale: 1.5,
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
-            width: previewElement.scrollWidth,
-            height: previewElement.scrollHeight,
-            logging: false, // Disable console logging
-            removeContainer: true,
-            foreignObjectRendering: false, // Disable foreign object rendering
-            imageTimeout: 0,
-            onclone: function(clonedDoc) {
-                // Remove all gradients from the cloned document
-                const clonedElements = clonedDoc.querySelectorAll('*');
-                clonedElements.forEach(element => {
-                    const computedStyle = window.getComputedStyle(element);
-                    if (computedStyle.backgroundImage && computedStyle.backgroundImage.includes('gradient')) {
-                        element.style.backgroundImage = 'none';
-                        element.style.backgroundColor = '#ffffff';
-                    }
-                    if (computedStyle.background && computedStyle.background.includes('gradient')) {
-                        element.style.background = '#ffffff';
-                    }
-                });
-            },
-            ignoreElements: (element) => {
-                // Skip elements that might cause issues
-                return element.classList && (
-                    element.classList.contains('skip-pdf') ||
-                    element.classList.contains('modal') ||
-                    element.classList.contains('btn') ||
-                    element.tagName === 'SCRIPT' ||
-                    element.tagName === 'STYLE'
-                );
+            logging: false,
+            removeContainer: false, // Don't remove container automatically
+            foreignObjectRendering: false,
+            imageTimeout: 15000, // Increase timeout
+            onclone: function(clonedDoc, element) {
+                // Ensure the cloned element exists
+                if (!element) {
+                    console.error('Cloned element not found');
+                    return;
+                }
+                // Remove problematic styles that might cause issues
+                try {
+                    const clonedElements = clonedDoc.querySelectorAll('*');
+                    clonedElements.forEach(el => {
+                        // Remove any transform or filter properties that might cause issues
+                        el.style.transform = 'none';
+                        el.style.filter = 'none';
+                        el.style.backdropFilter = 'none';
+                    });
+                } catch (e) {
+                    console.warn('Error processing cloned elements:', e);
+                }
             }
         });
 
