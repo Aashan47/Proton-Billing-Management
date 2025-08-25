@@ -607,6 +607,7 @@ function getFormData() {
         clientCompany: document.getElementById('clientCompany').value,
         clientAddress: document.getElementById('clientAddress').value,
         paymentInstructions: document.getElementById('paymentInstructions').value,
+        termsConditions: document.getElementById('termsConditions').value,
         serviceItems: serviceItems
     };
 }
@@ -619,6 +620,24 @@ function formatDate(dateString) {
         month: 'long',
         day: 'numeric'
     });
+}
+
+// Format terms and conditions as bullet list
+function formatTermsAndConditions(termsText) {
+    if (!termsText) return '';
+    
+    // Split by line breaks and filter out empty lines
+    const terms = termsText.split('\n').filter(term => term.trim() !== '');
+    
+    // If only one line, treat as regular text
+    if (terms.length === 1) {
+        return termsText;
+    }
+    
+    // Create bullet list HTML
+    return '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">' +
+           terms.map(term => `<li style="margin-bottom: 5px; line-height: 1.4;">${term.trim()}</li>`).join('') +
+           '</ul>';
 }
 
 // Clear the entire form
@@ -786,6 +805,13 @@ function previewInvoice() {
                 <div class="preview-section" style="margin-top: 25px;">
                     <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">PAYMENT INSTRUCTIONS</h3>
                     <p style="background: #f8fafc; padding: 12px; border-radius: 6px; line-height: 1.4; font-size: 0.85rem;">${invoiceData.paymentInstructions}</p>
+                </div>
+            ` : ''}
+            
+            ${invoiceData.termsConditions ? `
+                <div class="preview-section" style="margin-top: 25px;">
+                    <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">TERMS AND CONDITIONS</h3>
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 6px; line-height: 1.4; font-size: 0.85rem;">${formatTermsAndConditions(invoiceData.termsConditions)}</div>
                 </div>
             ` : ''}
             
@@ -999,6 +1025,13 @@ async function downloadAsStyledPDF() {
                     <div class="preview-section" style="margin-top: 25px;">
                         <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">PAYMENT INSTRUCTIONS</h3>
                         <p style="background: #f8fafc; padding: 12px; border-radius: 6px; line-height: 1.4; font-size: 0.85rem;">${invoiceData.paymentInstructions}</p>
+                    </div>
+                ` : ''}
+                
+                ${invoiceData.termsConditions ? `
+                    <div class="preview-section" style="margin-top: 25px;">
+                        <h3 style="background: #f8fafc; padding: 3px 6px; border-radius: 3px; margin-bottom: 10px; font-size: 0.8rem;">TERMS AND CONDITIONS</h3>
+                        <div style="background: #f8fafc; padding: 12px; border-radius: 6px; line-height: 1.4; font-size: 0.85rem;">${formatTermsAndConditions(invoiceData.termsConditions)}</div>
                     </div>
                 ` : ''}
                 
