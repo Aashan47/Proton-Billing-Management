@@ -105,6 +105,16 @@ come out as garbage.
 both together if you need them, since a tax line changes the totals maths in
 `Util.invoiceMath`, the document, and the PDF.
 
+## Rebuilding this for another business
+
+[`MASTERPROMPT.md`](MASTERPROMPT.md) is a self-contained brief for building this
+system for a different business, industry or document type (quote, receipt,
+statement). Fill in the business profile block at the top and hand the whole file
+to a coding agent. It carries the architecture constraints, the feature spec, a
+verification checklist, and the implementation traps that cost the most time here —
+uncompressed PDF images, tainted canvases under `file://`, WinAnsi encoding limits
+and UTC date parsing among them.
+
 ## Browsers
 
 Chrome, Edge, Safari and Firefox, current versions. Layout relies on CSS grid,
