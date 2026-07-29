@@ -864,50 +864,51 @@ select.status-select {
   flex-direction: column;
 }
 
+
+/* --- The document ------------------------------------------------------- */
+/* Swiss editorial: hairlines and tracked small caps carry the structure, not
+   filled bars. Set in the UI sans so the preview and the PDF match — jsPDF
+   only ships Helvetica, Times and Courier. Always print-light. */
+
+.doc__band {
+  height: 3.4px;
+  background: #b45309;
+  margin: -16mm -15mm 11mm;
+}
+
 .doc__top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 10mm;
-  padding-bottom: 7mm;
-  border-bottom: 1.5px solid #1c1917;
 }
 
 .doc__biz {
   display: flex;
-  gap: 5mm;
-  align-items: flex-start;
+  gap: 4.5mm;
+  align-items: center;
   min-width: 0;
 }
 
 .doc__logo {
-  width: 19mm;
-  height: 19mm;
+  width: 15mm;
+  height: 15mm;
   object-fit: contain;
   flex: none;
 }
 
 .doc__biz-name {
-  font-family: var(--font-display);
-  font-size: 16pt;
+  font-size: 13pt;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: #1c1917;
 }
 
 .doc__biz-tag {
-  font-size: 8.4pt;
+  font-size: 8pt;
   color: #6f6961;
-  margin-top: 1mm;
-}
-
-.doc__biz-lines {
-  margin-top: 3mm;
-  font-size: 8.2pt;
-  color: #6f6961;
-  line-height: 1.65;
-  white-space: pre-line;
+  margin-top: 0.8mm;
 }
 
 .doc__title-block {
@@ -916,99 +917,167 @@ select.status-select {
 }
 
 .doc__title {
-  font-family: var(--font-display);
-  font-size: 23pt;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font-size: 19pt;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
   line-height: 1;
   color: #1c1917;
+  /* Tracking adds trailing space on the last glyph; pull the optical edge back. */
+  margin-right: -0.3em;
 }
 
 .doc__number {
-  margin-top: 2mm;
-  font-size: 10pt;
+  margin-top: 2.5mm;
+  font-size: 9pt;
   font-weight: 600;
+  letter-spacing: 0.04em;
   color: #b45309;
   font-variant-numeric: tabular-nums;
 }
 
-.doc__stamp {
-  display: inline-block;
-  margin-top: 3mm;
-  padding: 1mm 3mm;
-  border: 1px solid #15803d;
-  border-radius: 999px;
-  color: #15803d;
-  font-size: 7.4pt;
+/* Shared small-caps label */
+.doc__label {
+  font-size: 6.6pt;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: #8a837a;
+}
+
+.doc__label--inline {
+  margin-top: 3mm;
+}
+
+.doc__label--rule {
+  padding-bottom: 1.6mm;
+  border-bottom: 0.6px solid #e6e1d8;
+  margin-bottom: 2.6mm;
 }
 
 .doc__meta {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 7mm;
-  margin: 7mm 0;
+  grid-template-columns: 1.25fr 1fr 0.85fr;
+  gap: 8mm;
+  margin-top: 9mm;
+  padding-top: 6mm;
+  border-top: 0.6px solid #ddd6ca;
 }
 
-.doc__meta-label {
-  font-size: 7.2pt;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6f6961;
-  margin-bottom: 2mm;
+.doc__meta > div > .doc__label {
+  margin-bottom: 2.4mm;
 }
 
-.doc__client-name {
-  font-size: 11pt;
+.doc__party-name {
+  font-size: 10.5pt;
   font-weight: 600;
   color: #1c1917;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
-.doc__client-lines {
-  margin-top: 1.5mm;
-  font-size: 8.4pt;
-  color: #44403c;
-  line-height: 1.6;
+.doc__party-name--sm {
+  font-size: 8.8pt;
+  font-weight: 600;
+}
+
+.doc__party-lines {
+  margin-top: 1.4mm;
+  font-size: 8pt;
+  color: #6f6961;
+  line-height: 1.62;
   white-space: pre-line;
 }
 
 .doc__date {
-  font-size: 9.6pt;
+  font-size: 9pt;
   font-weight: 500;
   color: #1c1917;
   font-variant-numeric: tabular-nums;
+  margin-top: 0.6mm;
 }
 
-.doc__due-amount {
-  font-size: 12.5pt;
+/* --- Hero amount --- */
+
+.doc__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8mm;
+  margin-top: 8mm;
+  padding: 4.5mm 6mm;
+  background: #f8f6f2;
+  border-left: 1.1mm solid #b45309;
+  border-radius: 1px;
+}
+
+.doc__hero--paid {
+  border-left-color: #15803d;
+}
+
+.doc__hero-amount {
+  margin-top: 1.6mm;
+  font-size: 19pt;
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: #1c1917;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.1;
 }
+
+.doc__hero-cur {
+  font-size: 10.5pt;
+  font-weight: 500;
+  color: #6f6961;
+  letter-spacing: 0;
+}
+
+.doc__hero-side {
+  text-align: right;
+  flex: none;
+}
+
+.doc__hero-side .doc__date {
+  margin-top: 1.4mm;
+}
+
+.doc__stamp {
+  display: inline-block;
+  padding: 1.4mm 4mm;
+  border: 0.8px solid #15803d;
+  border-radius: 999px;
+  color: #15803d;
+  font-size: 7.4pt;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* --- Line items --- */
 
 .doc__table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10mm;
 }
 
 .doc__table thead th {
-  padding: 2.5mm 3mm;
-  background: #1c1917;
-  color: #ffffff;
-  font-size: 7.2pt;
+  padding: 0 0 2.2mm;
+  border-bottom: 0.9px solid #1c1917;
+  font-size: 6.6pt;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  color: #8a837a;
   text-align: right;
 }
 
 .doc__table thead th:first-child {
   text-align: left;
+  padding-left: 0;
+}
+
+.doc__table thead th:last-child {
+  padding-right: 0;
 }
 
 .doc__table thead th.c {
@@ -1016,19 +1085,30 @@ select.status-select {
 }
 
 .doc__table tbody td {
-  padding: 2.8mm 3mm;
-  border-bottom: 1px solid #e6e1d8;
-  font-size: 8.8pt;
+  padding: 3.1mm 3mm;
+  border-bottom: 0.6px solid #ece7df;
+  font-size: 8.6pt;
   text-align: right;
   vertical-align: top;
   font-variant-numeric: tabular-nums;
-  color: #44403c;
+  color: #6f6961;
+  /* Amounts never wrap; only the description column reflows. */
+  white-space: nowrap;
 }
 
 .doc__table tbody td:first-child {
-  text-align: left;
-  color: #1c1917;
+  padding-left: 0;
+}
+
+.doc__table tbody td:last-child {
+  padding-right: 0;
+}
+
+.doc__cell-desc {
+  text-align: left !important;
+  color: #1c1917 !important;
   font-weight: 500;
+  white-space: normal;
 }
 
 .doc__table tbody td.c {
@@ -1044,18 +1124,30 @@ select.status-select {
   color: #1c1917;
 }
 
+.doc__blank {
+  margin-top: 10mm;
+  padding: 12mm 0;
+  text-align: center;
+  font-size: 8.6pt;
+  color: #a09990;
+  border-top: 0.9px solid #1c1917;
+  border-bottom: 0.6px solid #ece7df;
+}
+
+/* --- Totals --- */
+
 .doc__sums {
-  margin-top: 6mm;
+  margin-top: 5mm;
   margin-left: auto;
-  width: 74mm;
+  width: 72mm;
 }
 
 .doc__sum-row {
   display: flex;
   justify-content: space-between;
   gap: 6mm;
-  padding: 1.6mm 0;
-  font-size: 8.8pt;
+  padding: 1.5mm 0;
+  font-size: 8.6pt;
   color: #6f6961;
 }
 
@@ -1071,75 +1163,76 @@ select.status-select {
 .doc__sum-total {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   gap: 6mm;
-  margin-top: 2mm;
-  padding: 3mm 4mm;
-  background: #1c1917;
-  color: #ffffff;
-  border-radius: 3px;
-}
-
-.doc__sum-total span:first-child {
-  font-size: 7.8pt;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  margin-top: 2.4mm;
+  padding-top: 3mm;
+  border-top: 0.9px solid #1c1917;
 }
 
 .doc__sum-total span:last-child {
-  font-size: 12.5pt;
+  font-size: 13pt;
   font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #1c1917;
   font-variant-numeric: tabular-nums;
 }
 
+/* --- Notes --- */
+
 .doc__notes {
-  margin-top: 9mm;
+  margin-top: 11mm;
   display: grid;
-  gap: 6mm;
+  gap: 7mm;
 }
 
-.doc__note-title {
-  font-size: 7.2pt;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #6f6961;
-  padding-bottom: 1.5mm;
-  border-bottom: 1px solid #e6e1d8;
-  margin-bottom: 2.5mm;
+.doc__notes--two {
+  grid-template-columns: 1fr 1fr;
+  gap: 9mm;
 }
 
 .doc__note-body {
-  font-size: 8.6pt;
-  color: #44403c;
-  line-height: 1.65;
+  font-size: 8.2pt;
+  color: #57534e;
+  line-height: 1.68;
   white-space: pre-line;
 }
 
 .doc__note-body ul {
   margin: 0;
-  padding-left: 4.5mm;
+  padding-left: 4mm;
   white-space: normal;
 }
 
 .doc__note-body li {
-  margin-bottom: 1mm;
+  margin-bottom: 1.2mm;
+  padding-left: 0.6mm;
 }
+
+.doc__note-body li::marker {
+  color: #b45309;
+}
+
+/* --- Footer --- */
 
 .doc__foot {
   margin-top: auto;
-  padding-top: 7mm;
-  border-top: 1px solid #e6e1d8;
-  text-align: center;
-  font-size: 7.8pt;
-  color: #6f6961;
-  line-height: 1.6;
+  padding-top: 5mm;
+  border-top: 0.6px solid #e6e1d8;
+  display: flex;
+  justify-content: space-between;
+  gap: 8mm;
+  font-size: 7.2pt;
+  color: #8a837a;
+  letter-spacing: 0.02em;
 }
 
-.doc__foot strong {
-  color: #1c1917;
-  font-weight: 600;
+.doc__foot span:nth-child(2) {
+  color: #57534e;
+}
+
+.doc__foot span:last-child {
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- Drawer (settings / history) ---------------------------------------- */

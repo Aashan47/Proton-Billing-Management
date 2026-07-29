@@ -73,6 +73,18 @@ one direction rather than blending several:
 One accent colour only. It marks the document number, discounts and the active
 state — nothing else.
 
+**Set the document in the UI sans, not the display serif.** jsPDF only ships
+Helvetica, Times and Courier, so a document set in a serif display face looks like a
+different artefact in the PDF than in the preview. Keep the display face for the app
+chrome, where it costs nothing, and set the document itself in the sans. Hierarchy
+comes from size, weight and tracking, not from a second family.
+
+**Structure with hairlines and tracked small caps, not filled bars.** A solid black
+table header and a black totals slab are what make a document read as a 2010 word
+processor template. A 0.9px rule under tracked 6.6pt uppercase labels reads as
+designed. Give the amount due its own tinted strip near the top with a coloured
+edge — it is the one number the reader is looking for.
+
 ---
 
 ## 2. Hard architecture constraints
@@ -261,7 +273,22 @@ fit.style.height = paper.offsetHeight * scale + "px";
 Recompute on resize **and** on `document.fonts.ready` — web fonts change the page
 height after first paint.
 
-### 5.11 Everything else
+### 5.11 Fixed-width numeric columns wrap large amounts
+AutoTable columns are fixed width, and a currency where ordinary line items run to
+seven figures will silently wrap `1,250,000.00` onto two lines inside the cell. Size
+the numeric columns for the widest realistic amount, not for the sample data:
+
+```js
+// 28mm at 8.6pt with 2mm side padding holds "99,999,999.00" on one line
+const money = { halign: "right", cellWidth: 28,
+                cellPadding: { top: 2.9, bottom: 2.9, left: 2, right: 2 } };
+```
+
+Mirror it in the HTML with `white-space: nowrap` on numeric cells and `normal` on
+the description cell. **Test with a seven-figure amount** — small sample values hide
+this completely.
+
+### 5.12 Everything else
 - Re-render the item list only on add/remove, never on keystroke, or the field
   loses focus mid-typing.
 - Wrap every `localStorage` read in try/catch. A corrupt key must not white-screen
@@ -297,6 +324,8 @@ local static server). Do not report success on inspection alone.
 [ ] Dark mode engages and the document stays light
 [ ] At 390px viewport: document.scrollWidth <= 390 (no horizontal overflow)
 [ ] At 390px: every line-item input has a visible label
+[ ] A seven-figure line item renders on one line in the PDF, not wrapped
+[ ] The paid state renders its stamp and switches "amount due" to "total paid"
 ```
 
 Render the PDF to PNG (`pdftoppm -png -r 110`) and **look at it**. Byte counts and

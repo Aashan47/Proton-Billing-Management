@@ -1,6 +1,11 @@
 /* The invoice document — one renderer, used by the live preview and by print.
    The PDF exporter in pdf.js redraws this same layout with vector primitives;
-   keep the two in step when you change the design. */
+   keep the two in step when you change the design.
+
+   Typography note: the document is set entirely in the UI sans, not the display
+   serif used in the app chrome. jsPDF's built-in faces are Helvetica and Times,
+   so a sans document keeps the PDF and the preview looking like the same
+   artefact instead of two different ones. */
 
 const Doc = (() => {
   const e = Util.escapeHtml;
@@ -17,25 +22,15 @@ const Doc = (() => {
     return "<ul>" + lines.map((line) => "<li>" + e(line) + "</li>").join("") + "</ul>";
   }
 
-  function clientBlock(client) {
-    const lines = [client.company, client.email, client.phone, client.address]
+  function joinLines(values) {
+    return values
       .map((line) => String(line || "").trim())
       .filter(Boolean)
       .join("\n");
-
-    return (
-      '<div class="doc__client-name">' +
-      e(client.name || "—") +
-      "</div>" +
-      (lines ? '<div class="doc__client-lines">' + e(lines) + "</div>" : "")
-    );
   }
 
-  function businessLines(business) {
-    return [business.address, business.email, business.phone, business.website]
-      .map((line) => String(line || "").trim())
-      .filter(Boolean)
-      .join("\n");
+  function metaCol(label, html) {
+    return '<div><div class="doc__label">' + label + "</div>" + html + "</div>";
   }
 
   function itemRows(items, showDiscount) {
@@ -44,13 +39,11 @@ const Doc = (() => {
         const m = Util.itemMath(item);
         return (
           "<tr>" +
-          "<td>" + e(item.description) + "</td>" +
+          '<td class="doc__cell-desc">' + e(item.description) + "</td>" +
           '<td class="c">' + e(String(m.quantity)) + "</td>" +
           "<td>" + Util.formatAmount(m.price) + "</td>" +
           (showDiscount
-            ? '<td class="off">' +
-              (m.discount > 0 ? "−" + Util.formatAmount(m.discount) : "—") +
-              "</td>"
+            ? '<td class="off">' + (m.discount > 0 ? "−" + Util.formatAmount(m.discount) : "") + "</td>"
             : "") +
           '<td class="amt">' + Util.formatAmount(m.total) + "</td>" +
           "</tr>"
@@ -68,49 +61,73 @@ const Doc = (() => {
     const items = Util.billableItems(invoice.items);
     const sums = Util.invoiceMath(items);
     const showDiscount = items.some((item) => Util.itemMath(item).discount > 0);
-    const bizLines = businessLines(business);
     const isPaid = invoice.status === "paid";
-
     const logo = business.logo || DEFAULT_LOGO_DATA_URL;
 
-    const header =
+    /* --- Masthead --- */
+
+    const masthead =
       '<header class="doc__top">' +
       '<div class="doc__biz">' +
       (logo ? '<img class="doc__logo" src="' + e(logo) + '" alt="">' : "") +
       "<div>" +
       '<div class="doc__biz-name">' + e(business.name || "Your Business") + "</div>" +
       (business.tagline ? '<div class="doc__biz-tag">' + e(business.tagline) + "</div>" : "") +
-      (bizLines ? '<div class="doc__biz-lines">' + e(bizLines) + "</div>" : "") +
       "</div>" +
       "</div>" +
       '<div class="doc__title-block">' +
-      '<div class="doc__title">INVOICE</div>' +
+      '<div class="doc__title">Invoice</div>' +
       '<div class="doc__number">' + e(invoice.number || "—") + "</div>" +
-      (isPaid ? '<div class="doc__stamp">Paid</div>' : "") +
       "</div>" +
       "</header>";
 
+    /* --- Parties and dates --- */
+
+    const client = invoice.client || {};
+    const clientLines = joinLines([client.company, client.email, client.phone, client.address]);
+    const bizLines = joinLines([business.address, business.email, business.phone, business.website]);
+
     const meta =
       '<section class="doc__meta">' +
+      metaCol(
+        "Billed to",
+        '<div class="doc__party-name">' + e(client.name || "—") + "</div>" +
+          (clientLines ? '<div class="doc__party-lines">' + e(clientLines) + "</div>" : "")
+      ) +
+      metaCol(
+        "From",
+        '<div class="doc__party-name doc__party-name--sm">' + e(business.name || "") + "</div>" +
+          (bizLines ? '<div class="doc__party-lines">' + e(bizLines) + "</div>" : "")
+      ) +
+      metaCol(
+        "Issued",
+        '<div class="doc__date">' + e(Util.formatDate(invoice.issueDate)) + "</div>" +
+          '<div class="doc__label doc__label--inline">Due</div>' +
+          '<div class="doc__date">' + e(Util.formatDate(invoice.dueDate)) + "</div>"
+      ) +
+      "</section>";
+
+    /* --- Hero amount --- */
+
+    const hero =
+      '<section class="doc__hero' + (isPaid ? " doc__hero--paid" : "") + '">' +
       "<div>" +
-      '<div class="doc__meta-label">Billed to</div>' +
-      clientBlock(invoice.client || {}) +
+      '<div class="doc__label">' + (isPaid ? "Total paid" : "Amount due") + "</div>" +
+      '<div class="doc__hero-amount">' +
+      '<span class="doc__hero-cur">' + Util.CURRENCY + "</span> " +
+      Util.formatAmount(sums.total) +
       "</div>" +
-      "<div>" +
-      '<div class="doc__meta-label">Issued</div>' +
-      '<div class="doc__date">' + e(Util.formatDate(invoice.issueDate)) + "</div>" +
-      '<div class="doc__meta-label" style="margin-top:5mm">Due</div>' +
-      '<div class="doc__date">' + e(Util.formatDate(invoice.dueDate)) + "</div>" +
       "</div>" +
-      "<div>" +
-      '<div class="doc__meta-label">Amount due</div>' +
-      '<div class="doc__due-amount">' +
-      Util.CURRENCY +
-      "<br>" +
-      Util.formatAmount(isPaid ? 0 : sums.total) +
-      "</div>" +
+      '<div class="doc__hero-side">' +
+      (isPaid
+        ? '<span class="doc__stamp">Paid in full</span>'
+        : '<div class="doc__label">Payable by</div><div class="doc__date">' +
+          e(Util.formatDate(invoice.dueDate)) +
+          "</div>") +
       "</div>" +
       "</section>";
+
+    /* --- Line items --- */
 
     const table = items.length
       ? '<table class="doc__table">' +
@@ -123,8 +140,7 @@ const Doc = (() => {
         "</tr></thead>" +
         "<tbody>" + itemRows(items, showDiscount) + "</tbody>" +
         "</table>"
-      : '<p class="doc__note-body" style="text-align:center;padding:12mm 0;color:#a09990">' +
-        "No line items yet</p>";
+      : '<p class="doc__blank">No line items yet</p>';
 
     const sumsBlock =
       '<section class="doc__sums">' +
@@ -136,26 +152,25 @@ const Doc = (() => {
           Util.formatAmount(sums.discount) +
           "</span></div>"
         : "") +
-      '<div class="doc__sum-total"><span>' +
-      (isPaid ? "Total paid" : "Amount due") +
-      "</span><span>" +
-      Util.CURRENCY +
-      " " +
-      Util.formatAmount(sums.total) +
-      "</span></div>" +
+      '<div class="doc__sum-total">' +
+      '<span class="doc__label">' + (isPaid ? "Total paid" : "Total due") + "</span>" +
+      "<span>" + Util.CURRENCY + " " + Util.formatAmount(sums.total) + "</span>" +
+      "</div>" +
       "</section>";
+
+    /* --- Notes --- */
 
     const notesHtml = renderNoteBody(invoice.notes);
     const termsHtml = renderNoteBody(invoice.terms);
     const notes =
       notesHtml || termsHtml
-        ? '<section class="doc__notes">' +
+        ? '<section class="doc__notes' + (notesHtml && termsHtml ? " doc__notes--two" : "") + '">' +
           (notesHtml
-            ? '<div><div class="doc__note-title">Payment instructions</div>' +
+            ? '<div><div class="doc__label doc__label--rule">Payment instructions</div>' +
               '<div class="doc__note-body">' + notesHtml + "</div></div>"
             : "") +
           (termsHtml
-            ? '<div><div class="doc__note-title">Terms &amp; conditions</div>' +
+            ? '<div><div class="doc__label doc__label--rule">Terms &amp; conditions</div>' +
               '<div class="doc__note-body">' + termsHtml + "</div></div>"
             : "") +
           "</section>"
@@ -163,13 +178,21 @@ const Doc = (() => {
 
     const footer =
       '<footer class="doc__foot">' +
-      (business.footerNote ? "<strong>" + e(business.footerNote) + "</strong><br>" : "") +
-      e(business.name || "") +
-      (business.email ? " · " + e(business.email) : "") +
-      (business.phone ? " · " + e(business.phone) : "") +
+      "<span>" + e(business.name || "") + "</span>" +
+      (business.footerNote ? "<span>" + e(business.footerNote) + "</span>" : "<span></span>") +
+      "<span>" + e(invoice.number || "") + "</span>" +
       "</footer>";
 
-    return header + meta + table + sumsBlock + notes + footer;
+    return (
+      '<div class="doc__band"></div>' +
+      masthead +
+      meta +
+      hero +
+      table +
+      sumsBlock +
+      notes +
+      footer
+    );
   }
 
   return { render, renderNoteBody };
