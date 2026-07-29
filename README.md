@@ -1,194 +1,115 @@
-# Proton Media - Billing Generator
+# Proton Billing
 
-A simple, professional web-based billing generator designed specifically for film and media agencies. Create invoices quickly and download them as PDF files without any backend requirements.
+A billing tool for a film and media studio. Write an invoice, watch it typeset itself
+on an A4 page beside you, and export a real vector PDF. No build step, no backend,
+no account — open `index.html` and start.
 
-## Features
+![Proton Billing](Img.png)
 
-### 🎬 Film & Media Focused
-- Tailored interface for creative services
-- Pre-designed for video production, editing, photography services
-- Professional invoice templates
-
-### 📋 Easy Invoice Creation
-- **Client Information**: Name, company, email, phone, address
-- **Multiple Service Items**: Description, price, quantity, discount per item
-- **Real-time Calculations**: Totals update as you type
-- **Date Management**: Auto-sets current date and 30-day due date
-- **Payment Instructions**: Customizable payment terms
-
-### 📄 Professional PDF Generation
-- Clean, professional invoice layout
-- Company branding section
-- Itemized services table
-- Automatic calculations with discounts
-- Payment instructions included
-- Downloadable PDF with proper naming
-
-### 💻 User Experience
-- **Mobile & Desktop Friendly**: Responsive design works on all devices
-- **No Login Required**: Start creating invoices immediately
-- **Auto-save Draft**: Saves your work locally as you type
-- **Form Validation**: Ensures all required fields are completed
-- **Real-time Feedback**: Success messages and error handling
-
-## Quick Start
-
-1. **Open the Application**
-   - Simply open `index.html` in any modern web browser
-   - No server setup required - works offline!
-
-2. **Fill Invoice Details**
-   - Invoice number is auto-generated
-   - Set your invoice and due dates
-   - Enter client information
-
-3. **Add Services**
-   - Click "Add Item" to add services
-   - Enter description, price, quantity, and discount
-   - Watch totals calculate automatically
-
-4. **Generate PDF**
-   - Click "Generate PDF Invoice"
-   - PDF downloads automatically with proper filename
-   - Share with your clients!
-
-## File Structure
+## Running it
 
 ```
-Proton Billing/
-├── index.html      # Main application file
-├── styles.css      # Styling and responsive design
-├── script.js       # Application logic and PDF generation
-└── README.md       # This file
+open index.html
 ```
 
-## Technology Stack
+That is the whole setup. Every feature works from `file://`, including PDF export.
 
-- **HTML5**: Modern semantic markup
-- **CSS3**: Responsive design with flexbox/grid
-- **Vanilla JavaScript**: No frameworks needed
-- **jsPDF**: PDF generation library
-- **jsPDF-AutoTable**: Table generation for itemized services
+The only network requests are two CDN scripts (jsPDF and its AutoTable plugin) and
+the web fonts. If you are offline, the app still runs and falls back to system fonts;
+only PDF export needs those two scripts, and it tells you plainly if they did not load.
 
-## Customization
+To serve it instead — useful on a phone on the same network:
 
-### Company Information
-Edit the header section in `index.html`:
-```html
-<div class="company-info">
-    <h1>Your Company Name</h1>
-    <p>Your Tagline</p>
-</div>
+```
+python3 -m http.server 8000
 ```
 
-### Styling
-Modify colors and branding in `styles.css`:
-```css
-/* Primary brand color */
---primary-color: #3498db;
---secondary-color: #2c3e50;
+## What it does
+
+**Live A4 preview.** The document renders next to the form and updates as you type.
+What you see is what prints and what exports — there is one renderer, not three.
+
+**Vector PDF export.** Text stays selectable and searchable, prints sharp at any zoom,
+and a typical invoice weighs about 25KB. Long invoices flow across as many pages as
+they need, repeating the table header and numbering every page.
+
+**Invoice history.** Save an invoice and it lands in a searchable list. Open it,
+duplicate it into a fresh one, re-export its PDF, or delete it.
+
+**Client memory.** Clients are remembered as you invoice them. Start typing a name
+and the rest of their details fill themselves in.
+
+**Business settings.** Name, tagline, address, contact details and logo are all
+editable and stored on your device — nothing is hardcoded in the source. Invoice
+numbers auto-increment from a prefix and counter you control.
+
+**Backup.** Export everything to a JSON file and import it on another machine.
+Imports merge rather than overwrite, so nothing already saved is lost.
+
+**Drafts.** Work in progress is saved continuously and restored when you come back.
+
+**Print.** `Cmd/Ctrl+P` prints the invoice on its own, with no app chrome.
+
+**Dark mode.** For the app. The document stays print-light, because it is a document.
+
+## Keyboard
+
+| Shortcut | Action |
+| --- | --- |
+| `⌘/Ctrl + S` | Save invoice |
+| `⌘/Ctrl + ↵` | Download PDF |
+| `⌘/Ctrl + P` | Print |
+| `Alt + A` | Add line item |
+| `Alt + N` | New invoice |
+| `Alt + H` | Invoices & clients |
+| `↵` in a description | Next line item, adding one if needed |
+| `Esc` | Close the open panel |
+
+## Layout
+
+```
+index.html        Markup and layout
+styles.css        Design system, app UI, document, print and responsive rules
+js/
+  logo.js         Default studio mark, inlined as a data URL
+  util.js         Formatting, escaping, dates, money maths
+  store.js        localStorage: business profile, invoices, clients, draft
+  document.js     The invoice document renderer — preview and print
+  pdf.js          Vector PDF export (jsPDF + AutoTable)
+  app.js          Editor state, validation, toasts, shortcuts, autosave
+  panels.js       Settings and history slide-overs, backup import/export
 ```
 
-### Default Services
-Add common services to the description placeholder in `script.js`:
-```javascript
-placeholder="e.g., Video Production, Editing, Photography"
-```
+`document.js` and `pdf.js` describe the same layout in two media. Change one and
+change the other.
 
-## Browser Compatibility
+## Notes for whoever edits this next
 
-- ✅ Chrome 60+
-- ✅ Firefox 55+
-- ✅ Safari 12+
-- ✅ Edge 79+
+**Everything is local.** All data lives in this browser's `localStorage` under the
+`proton.*` keys. Clearing site data deletes it — export a backup first. Nothing is
+ever sent anywhere.
 
-## Features in Detail
+**The logo is inlined on purpose.** Reading `Img.png` through a canvas taints it
+under `file://`, which breaks PDF export. `js/logo.js` holds the mark as a data URL
+so export works everywhere. Uploaded logos are stored the same way; keep them under
+900KB, since the image is embedded in every PDF and counts against the storage quota.
 
-### Auto-calculations
-- **Item Totals**: Price × Quantity - Discount
-- **Subtotal**: Sum of all item prices × quantities
-- **Total Discount**: Sum of all discount amounts
-- **Final Total**: Subtotal - Total Discount
+**PDF text is WinAnsi.** jsPDF's built-in fonts cover en dashes, em dashes, curly
+quotes and bullets, but not `−` (U+2212). `Pdf.ascii()` folds what would otherwise
+come out as garbage.
 
-### PDF Features
-- Professional header with company info
-- Invoice number and dates
-- Complete client billing address
-- Itemized services table
-- Summary totals section
-- Payment instructions
-- Proper filename: `Invoice_[NUMBER]_[CLIENT].pdf`
+**User input is escaped.** Anything typed into the form passes through
+`Util.escapeHtml` before it reaches `innerHTML`.
 
-### Form Validation
-- Required fields: Invoice number, dates, client name
-- At least one service item required
-- Numeric validation for prices and quantities
-- Date validation for invoice and due dates
+**Currency is PKR**, defined once as `Util.CURRENCY`. There is no tax field — add
+both together if you need them, since a tax line changes the totals maths in
+`Util.invoiceMath`, the document, and the PDF.
 
-### Data Persistence
-- **Auto-save**: Saves draft to browser's local storage
-- **Draft Recovery**: Offers to restore unsaved work
-- **No Server**: All data stays in your browser
+## Browsers
 
-## Common Use Cases
-
-### Video Production Invoice
-```
-Service: Video Production - Corporate Promo
-Price: $2,500
-Quantity: 1
-Discount: 10% (early payment)
-```
-
-### Multi-Service Project
-```
-1. Pre-production Planning - $500 × 1
-2. Video Shooting - $1,200 × 2 days
-3. Post-production Editing - $800 × 1
-4. Color Correction - $300 × 1
-```
-
-### Photography Package
-```
-1. Event Photography - $150 × 8 hours
-2. Photo Editing - $200 × 1
-3. Digital Gallery Setup - $100 × 1
-```
-
-## Tips for Best Results
-
-1. **Consistent Pricing**: Use standard rates for common services
-2. **Clear Descriptions**: Be specific about deliverables
-3. **Professional Contact**: Update company contact information
-4. **Payment Terms**: Customize payment instructions for your business
-5. **File Naming**: PDFs auto-name with invoice number and client name
-
-## Troubleshooting
-
-### PDF Not Generating
-- Check that all required fields are filled
-- Ensure at least one service item has a description
-- Try refreshing the page and filling form again
-
-### Calculations Not Updating
-- Make sure to click outside input fields after typing
-- Check that numeric fields contain valid numbers
-- Refresh page if calculations seem stuck
-
-### Mobile Display Issues
-- Use latest browser version
-- Rotate device for better table viewing
-- Zoom out if content appears cut off
-
-## Support
-
-This is a standalone application that runs entirely in your browser. No technical support is provided, but the code is well-commented for customization.
-
-## License
-
-Free to use and modify for your business needs.
+Chrome, Edge, Safari and Firefox, current versions. Layout relies on CSS grid,
+`color-mix()` and container-free scaling; PDF export relies on jsPDF 2.5.
 
 ---
 
-**Created for Proton Media Agency** 🎬
-*Professional Film & Media Services*
+Built for Proton Studio.

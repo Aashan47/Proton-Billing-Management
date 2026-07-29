@@ -1,171 +1,244 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Proton Media Professional Billing Generator - Create professional invoices for film and media services">
-    <meta name="keywords" content="invoice, billing, proton media, film services, media services">
-    <title>Proton Media - Professional Billing Generator</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- PDF Generation Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="Img.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Create, preview and export professional invoices as vector PDFs. Works offline, stores nothing on a server.">
+<meta name="color-scheme" content="light dark">
+<title>Proton Studio — Billing</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" type="image/png" href="Img.png">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js" defer></script>
 </head>
-<body>
-    <div class="container">
-        <header class="header">
-            <div class="company-info">
-                <div class="brand-container">
-                    <img src="Img.png" alt="Proton Studio Logo" class="company-logo">
-                    <div class="company-text">
-                        <h1>Proton Studio</h1>
-                        <p>Professional Film & Media Services</p>
-                    </div>
-                </div>
-            </div>
-            <div class="header-actions">
-                <div class="invoice-badge">
-                    <span class="badge-text">Invoice Generator</span>
-                </div>
-            </div>
-        </header>
 
-        <main class="main-content">
-            <section class="billing-form">
-                <h2>Create New Invoice</h2>
-                
-                <!-- Invoice Details -->
-                <div class="form-section">
-                    <h3>Invoice Details</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="invoiceNumber">Invoice Number</label>
-                            <input type="text" id="invoiceNumber" value="INV-001" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="invoiceDate">Invoice Date</label>
-                            <input type="date" id="invoiceDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="dueDate">Due Date</label>
-                            <input type="date" id="dueDate" required>
-                        </div>
-                    </div>
-                </div>
+<body data-view="edit">
 
-                <!-- Client Information -->
-                <div class="form-section">
-                    <h3>Client Information</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="clientName">Client Name</label>
-                            <input type="text" id="clientName" placeholder="Enter client name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="clientEmail">Email</label>
-                            <input type="email" id="clientEmail" placeholder="client@example.com">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="clientPhone">Phone</label>
-                            <input type="tel" id="clientPhone" placeholder="(555) 123-4567">
-                        </div>
-                        <div class="form-group">
-                            <label for="clientCompany">Company</label>
-                            <input type="text" id="clientCompany" placeholder="Client Company Name">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="clientAddress">Address</label>
-                        <textarea id="clientAddress" placeholder="Client address" rows="3"></textarea>
-                    </div>
-                </div>
+<header class="topbar">
+  <div class="brand">
+    <img id="brandMark" class="brand__mark" src="Img.png" alt="">
+    <div>
+      <div id="brandName" class="brand__name">Proton Studio</div>
+      <div id="brandSub" class="brand__sub">Professional Film &amp; Media Services</div>
+    </div>
+  </div>
 
-                <!-- Service Items -->
-                <div class="form-section">
-                    <div class="section-header">
-                        <h3>Service Items</h3>
-                        <button type="button" class="btn btn-secondary" onclick="addServiceItem()">+ Add Item</button>
-                    </div>
-                    
-                    <div class="items-container" id="itemsContainer">
-                        <!-- Service items will be added here dynamically -->
-                    </div>
-                    
-                    <div class="totals-section">
-                        <div class="totals-row">
-                            <span>Subtotal:</span>
-                            <span id="subtotal">PKR 0.00</span>
-                        </div>
-                        <div class="totals-row">
-                            <span>Total Discount:</span>
-                            <span id="totalDiscount">PKR 0.00</span>
-                        </div>
-                        <div class="totals-row total">
-                            <span>Total Amount:</span>
-                            <span id="totalAmount">PKR 0.00</span>
-                        </div>
-                    </div>
-                </div>
+  <div class="topbar__spacer"></div>
 
-                <!-- Payment Instructions -->
-                <div class="form-section">
-                    <h3>Payment Instructions</h3>
-                    <div class="form-group">
-                        <label for="paymentInstructions">Payment Instructions</label>
-                        <textarea id="paymentInstructions" placeholder="Enter payment instructions..." rows="4"></textarea>
-                    </div>
-                </div>
+  <div class="viewswitch" role="group" aria-label="Switch view">
+    <button type="button" data-view="edit" aria-pressed="true">Edit</button>
+    <button type="button" data-view="preview" aria-pressed="false">Preview</button>
+  </div>
 
-                <!-- Terms and Conditions -->
-                <div class="form-section">
-                    <h3>Terms and Conditions</h3>
-                    <div class="form-group">
-                        <label for="termsConditions">Terms and Conditions</label>
-                        <textarea id="termsConditions" placeholder="Enter each term on a new line to create bullet points...&#10;Example:&#10;Payment is due within 30 days&#10;Late fees may apply after due date&#10;All work remains property of Proton Studio until payment" rows="6"></textarea>
-                    </div>
-                </div>
+  <div class="topbar__actions">
+    <button type="button" id="btnHistory" class="btn btn--sm" title="Invoices &amp; clients (Alt+H)" aria-label="Invoices and clients">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      <span>Invoices</span>
+    </button>
+    <button type="button" id="btnSettings" class="btn btn--sm btn--icon" title="Business settings" aria-label="Business settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+    </button>
+    <button type="button" id="themeToggle" class="btn btn--sm btn--icon" aria-pressed="false" aria-label="Toggle dark mode"></button>
+  </div>
+</header>
 
-                <!-- Actions -->
-                <div class="actions">
-                    <!-- <button type="button" class="btn btn-primary" onclick="downloadAsStyledPDF()">Generate PDF Invoice</button> -->
-                    <button type="button" class="btn btn-primary" onclick="previewInvoice()">Preview Invoice</button>
-                    <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear Form</button>
-                </div>
-            </section>
-            
-            <!-- Preview Modal -->
-            <div id="previewModal" class="modal" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3>Invoice Preview</h3>
-                        <span class="close" onclick="closePreview()">&times;</span>
-                    </div>
-                    <div class="modal-body" id="previewContent">
-                        <!-- Preview content will be inserted here -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="downloadAsStyledPDF()">Download PDF</button>
-                        <button type="button" class="btn btn-secondary" onclick="closePreview()">Close</button>
-                    </div>
-                </div>
-            </div>
-        </main>
+<div class="workspace">
+
+  <!-- ---------------------------------------------------------------- Editor -->
+  <main class="editor">
+    <div class="editor__head">
+      <h1 class="editor__title">New invoice</h1>
+      <div class="editor__meta">
+        <label class="sr-only" for="status">Status</label>
+        <select id="status" class="status-select">
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="paid">Paid</option>
+        </select>
+        <span id="dueHint"></span>
+        <span aria-hidden="true">·</span>
+        <span id="itemCount">0 items</span>
+        <span aria-hidden="true">·</span>
+        <span id="savedHint">New invoice</span>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">Invoice details</h2></div>
+      <div class="grid grid--3">
+        <div class="field">
+          <label for="invoiceNumber">Invoice number</label>
+          <input type="text" id="invoiceNumber" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="issueDate">Issue date</label>
+          <input type="date" id="issueDate">
+        </div>
+        <div class="field">
+          <label for="dueDate">Due date</label>
+          <input type="date" id="dueDate">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">Bill to</h2></div>
+      <div class="grid grid--2">
+        <div class="field combo">
+          <label for="clientName">Client name</label>
+          <input type="text" id="clientName" placeholder="Start typing to reuse a client"
+                 autocomplete="off" role="combobox" aria-expanded="false"
+                 aria-autocomplete="list" aria-controls="clientSuggestions">
+          <div id="clientSuggestions" class="combo__list" role="listbox" aria-label="Saved clients" hidden></div>
+        </div>
+        <div class="field">
+          <label for="clientCompany">Company</label>
+          <input type="text" id="clientCompany" placeholder="Optional">
+        </div>
+      </div>
+      <div class="grid grid--2">
+        <div class="field">
+          <label for="clientEmail">Email</label>
+          <input type="email" id="clientEmail" placeholder="billing@client.com" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="clientPhone">Phone</label>
+          <input type="tel" id="clientPhone" placeholder="+92 300 0000000" autocomplete="off">
+        </div>
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label for="clientAddress">Address</label>
+          <textarea id="clientAddress" rows="3" placeholder="Street&#10;City, Postcode&#10;Country"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head">
+        <h2 class="card__title">Line items</h2>
+        <button type="button" id="addItem" class="btn btn--sm" title="Add line item (Alt+A)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Add item</span>
+        </button>
+      </div>
+
+      <div class="items__head" aria-hidden="true">
+        <span>Description</span>
+        <span>Qty</span>
+        <span>Rate</span>
+        <span>Off %</span>
+        <span>Amount</span>
+        <span></span>
+      </div>
+      <div class="items" id="items"></div>
+
+      <div class="totals">
+        <div class="totals__row"><span>Subtotal</span><span id="sumSubtotal" class="num">0.00</span></div>
+        <div class="totals__row totals__row--discount" id="rowDiscount" hidden>
+          <span>Discount</span><span id="sumDiscount" class="num">0.00</span>
+        </div>
+        <div class="totals__row totals__row--grand">
+          <span>Amount due</span><span id="sumTotal" class="num">PKR 0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__head"><h2 class="card__title">Payment &amp; terms</h2></div>
+      <div class="grid">
+        <div class="field">
+          <label for="paymentNotes">Payment instructions</label>
+          <textarea id="paymentNotes" rows="3" placeholder="Bank details, reference, payment link…"></textarea>
+        </div>
+        <div class="field">
+          <label for="terms">Terms &amp; conditions</label>
+          <textarea id="terms" rows="4" placeholder="One term per line — each becomes a bullet point."></textarea>
+          <div class="field__hint">One term per line. Change the defaults in Settings.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="actionbar">
+      <button type="button" id="btnPdf" class="btn btn--primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Download PDF</span>
+        <span class="kbd">⌘↵</span>
+      </button>
+      <button type="button" id="btnSave" class="btn">
+        <span>Save</span><span class="kbd">⌘S</span>
+      </button>
+      <button type="button" id="btnPrint" class="btn">Print</button>
+      <div class="actionbar__end">
+        <button type="button" id="btnNew" class="btn btn--ghost" title="New invoice (Alt+N)">New invoice</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ---------------------------------------------------------------- Preview -->
+  <aside class="stage" aria-label="Invoice preview">
+    <div class="stage__bar">
+      <span class="stage__label">Live preview · A4</span>
+    </div>
+    <div class="stage__scroll">
+      <div class="paper-fit" id="paperFit">
+        <div class="paper-scaler">
+          <article class="paper" id="paper"></article>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ------------------------------------------------------------------ Drawers -->
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="drawer" id="drawerSettings" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <header class="drawer__head">
+    <h2 class="drawer__title" id="settingsTitle">Business settings</h2>
+    <button type="button" class="btn btn--ghost btn--icon btn--sm" data-close aria-label="Close settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </header>
+  <div class="drawer__body" id="settingsBody"></div>
+  <footer class="drawer__foot">
+    <button type="button" id="settingsSave" class="btn btn--primary">Save settings</button>
+    <button type="button" id="btnExport" class="btn btn--sm">Export backup</button>
+    <button type="button" id="btnImport" class="btn btn--sm">Import</button>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </footer>
+</aside>
+
+<aside class="drawer" id="drawerHistory" hidden role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+  <header class="drawer__head">
+    <h2 class="drawer__title" id="historyTitle">Invoices &amp; clients</h2>
+    <button type="button" class="btn btn--ghost btn--icon btn--sm" data-close aria-label="Close invoices">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </header>
+  <div class="drawer__body">
+    <div class="field" style="margin-bottom:18px">
+      <label class="sr-only" for="historySearch">Search</label>
+      <input type="search" id="historySearch" placeholder="Search by number, client or company">
+    </div>
+    <div id="historyBody"></div>
+  </div>
+</aside>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="js/logo.js"></script>
+<script src="js/util.js"></script>
+<script src="js/store.js"></script>
+<script src="js/document.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/app.js"></script>
+<script src="js/panels.js"></script>
 </body>
 </html>
