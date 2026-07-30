@@ -89,10 +89,19 @@ change the other.
 `proton.*` keys. Clearing site data deletes it — export a backup first. Nothing is
 ever sent anywhere.
 
-**The logo is inlined on purpose.** Reading `Img.png` through a canvas taints it
+**The logo is inlined on purpose.** Reading an image file through a canvas taints it
 under `file://`, which breaks PDF export. `js/logo.js` holds the mark as a data URL
 so export works everywhere. Uploaded logos are stored the same way; keep them under
 900KB, since the image is embedded in every PDF and counts against the storage quota.
+
+**There are two logo files, deliberately.** `Img.png` is the original brand asset,
+untouched. `assets/mark.png` is the print mark derived from it — trimmed to the
+artwork (the original sits in 56% transparent padding, so it drew at 6.6mm inside a
+15mm box), squared so a forced-square `addImage` cannot distort it, and flattened
+from pale silver to solid ink so it holds up at document size. `js/logo.js` is the
+base64 of `assets/mark.png`. Regenerate all three together if the brand mark
+changes. Because the mark is ink, dark mode puts it on a light chip rather than
+inverting it — inverting would wreck an uploaded colour logo.
 
 **PDF text is WinAnsi.** jsPDF's built-in fonts cover en dashes, em dashes, curly
 quotes and bullets, but not `−` (U+2212). `Pdf.ascii()` folds what would otherwise

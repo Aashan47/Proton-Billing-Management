@@ -288,7 +288,36 @@ Mirror it in the HTML with `white-space: nowrap` on numeric cells and `normal` o
 the description cell. **Test with a seven-figure amount** — small sample values hide
 this completely.
 
-### 5.12 Everything else
+### 5.12 Audit the supplied logo before shipping it
+Client logo files are routinely unusable as-is, and it reads as "the app renders my
+logo badly" rather than "my file is padded". Measure it first:
+
+```python
+from PIL import Image
+im = Image.open("logo.png").convert("RGBA")
+a = im.split()[3]
+bbox = a.point(lambda v: 255 if v > 24 else 0).getbbox()   # artwork extent
+print(bbox, "of", im.size)                                  # padding?
+opaque = [p for p in im.getdata() if p[3] > 24]
+print(sum(p[0] for p in opaque)/len(opaque))                # too light to print?
+```
+
+The reference asset was a 1024×1024 file whose artwork filled only 44% of the
+canvas, drawn as a pale silver gradient. In a 15mm box the visible mark came out
+**6.6mm and washed out**. Fix by deriving a print mark: trim to the alpha bbox, pad
+to a square (a forced-square `addImage` distorts a non-square source), and flatten a
+monochrome gradient to solid ink using alpha as the shape mask. Keep the original
+file untouched.
+
+**Then re-check dark mode.** A mark flattened to ink so it prints well becomes
+invisible on a dark app bar. Do not invert — an uploaded colour logo depends on its
+own colours. Put the mark on a light chip:
+
+```css
+[data-theme="dark"] .brand__mark { background: #f2efe9; padding: 3px; }
+```
+
+### 5.13 Everything else
 - Re-render the item list only on add/remove, never on keystroke, or the field
   loses focus mid-typing.
 - Wrap every `localStorage` read in try/catch. A corrupt key must not white-screen
@@ -326,6 +355,8 @@ local static server). Do not report success on inspection alone.
 [ ] At 390px: every line-item input has a visible label
 [ ] A seven-figure line item renders on one line in the PDF, not wrapped
 [ ] The paid state renders its stamp and switches "amount due" to "total paid"
+[ ] The logo is legible in the document AND against the dark-mode app bar
+    (sample the pixels — do not eyeball it)
 ```
 
 Render the PDF to PNG (`pdftoppm -png -r 110`) and **look at it**. Byte counts and

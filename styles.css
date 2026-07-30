@@ -190,6 +190,14 @@ button {
   border-radius: var(--r-sm);
 }
 
+/* The default mark is solid ink so it prints well, which leaves it invisible on
+   a dark topbar. A light chip keeps any logo legible without inverting colours
+   an uploaded one may depend on. */
+[data-theme="dark"] .brand__mark {
+  background: #f2efe9;
+  padding: 3px;
+}
+
 .brand__name {
   font-family: var(--font-display);
   font-size: 17px;
