@@ -129,8 +129,21 @@ const Doc = (() => {
 
     /* --- Line items --- */
 
+    /* Fixed column widths, matching the PDF's millimetre grid, so a long
+       description reflows inside its own column instead of stretching the
+       table and pushing Qty/Rate/Amount off the page. */
+    const colgroup =
+      "<colgroup>" +
+      "<col>" +
+      '<col class="doc__col-qty">' +
+      '<col class="doc__col-num">' +
+      (showDiscount ? '<col class="doc__col-num">' : "") +
+      '<col class="doc__col-num">' +
+      "</colgroup>";
+
     const table = items.length
       ? '<table class="doc__table">' +
+        colgroup +
         "<thead><tr>" +
         "<th>Description</th>" +
         '<th class="c">Qty</th>' +

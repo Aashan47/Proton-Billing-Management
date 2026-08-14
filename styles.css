@@ -1066,6 +1066,18 @@ select.status-select {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10mm;
+  /* Fixed layout keeps the numeric columns at the widths the PDF uses; the
+     description column absorbs whatever is left and wraps inside it. */
+  table-layout: fixed;
+}
+
+/* Same millimetres as pdf.js: 13mm for Qty, 28mm per money column. */
+.doc__col-qty {
+  width: 13mm;
+}
+
+.doc__col-num {
+  width: 28mm;
 }
 
 .doc__table thead th {
@@ -1112,11 +1124,17 @@ select.status-select {
   padding-right: 0;
 }
 
-.doc__cell-desc {
-  text-align: left !important;
-  color: #1c1917 !important;
+/* Selector must outrank `.doc__table tbody td`, which sets nowrap for the
+   numeric columns — otherwise the description inherits it and never wraps. */
+.doc__table tbody td.doc__cell-desc {
+  text-align: left;
+  color: #1c1917;
   font-weight: 500;
   white-space: normal;
+  /* A single unbroken run of characters breaks mid-word rather than widening
+     the column — jsPDF's splitTextToSize does the same in the PDF. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .doc__table tbody td.c {
