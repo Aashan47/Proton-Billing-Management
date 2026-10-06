@@ -48,7 +48,17 @@ const App = (() => {
       items: [blankItem()],
       notes: profile.defaultPaymentInstructions || "",
       terms: profile.defaultTerms || "",
+      currency: Store.currencyFor({}, profile),
+      labels: Store.labelsFor({}, profile),
     };
+  }
+
+  /** Invoices saved before wording was editable get the current defaults. */
+  function withWording(invoice) {
+    const profile = Store.getBusiness();
+    invoice.labels = Object.assign(Store.labelsFor({}, profile), invoice.labels || {});
+    invoice.currency = Store.currencyFor(invoice, profile);
+    return invoice;
   }
 
   function getState() {
@@ -110,7 +120,7 @@ const App = (() => {
         'aria-label="Item ' + n + ' quantity" placeholder="1"></label>' +
         '<label class="item__f"><span>Rate</span>' +
         '<input type="number" data-k="price" min="0" step="0.01" ' +
-        'aria-label="Item ' + n + ' rate in ' + Util.CURRENCY + '" placeholder="0.00"></label>' +
+        'aria-label="Item ' + n + ' rate in ' + Util.escapeHtml(Store.currencyFor(state, business)) + '" placeholder="0.00"></label>' +
         '<label class="item__f"><span>Off %</span>' +
         '<input type="number" data-k="discount" min="0" max="100" step="0.1" ' +
         'aria-label="Item ' + n + ' discount percent" placeholder="0"></label>' +
@@ -162,7 +172,7 @@ const App = (() => {
 
     $("#sumSubtotal").textContent = Util.formatAmount(sums.subtotal);
     $("#sumDiscount").textContent = "−" + Util.formatAmount(sums.discount);
-    $("#sumTotal").textContent = Util.money(sums.total);
+    $("#sumTotal").textContent = Util.money(sums.total, Store.currencyFor(state, business));
     $("#rowDiscount").hidden = !hasDiscount;
     $("#itemCount").textContent =
       billable.length + (billable.length === 1 ? " item" : " items");
@@ -245,8 +255,112 @@ const App = (() => {
     $("#paymentNotes").value = state.notes || "";
     $("#terms").value = state.terms || "";
     $("#status").value = state.status || "draft";
+    fillWording();
     renderItems();
     refresh();
+  }
+
+  /* --- Invoice wording ----------------------------------------------------- */
+
+  // [key, field label]. "currency" lives on the invoice itself, not in labels.
+  const WORDING_GROUPS = [
+    ["Heading", [["title", "Document title"], ["currency", "Currency"]]],
+    [
+      "Parties & dates",
+      [["billedTo", "Billed to"], ["from", "From"], ["issued", "Issued"], ["due", "Due"], ["payableBy", "Payable by"]],
+    ],
+    [
+      "Line items",
+      [["description", "Description"], ["qty", "Qty"], ["rate", "Rate"], ["discount", "Discount"], ["amount", "Amount"]],
+    ],
+    [
+      "Totals",
+      [
+        ["subtotal", "Subtotal"],
+        ["amountDue", "Amount due"],
+        ["totalDue", "Total due"],
+        ["totalPaid", "Total paid"],
+        ["paidStamp", "Paid stamp"],
+      ],
+    ],
+    [
+      "Notes & pages",
+      [
+        ["paymentInstructions", "Payment instructions"],
+        ["terms", "Terms & conditions"],
+        ["continued", "Continued (on extra PDF pages)"],
+      ],
+    ],
+  ];
+
+  function wordingDefault(key) {
+    return key === "currency" ? Store.DEFAULT_CURRENCY : Store.DEFAULT_LABELS[key];
+  }
+
+  function buildWording() {
+    const host = $("#wordingFields");
+    host.innerHTML = "";
+    WORDING_GROUPS.forEach(([title, fields]) => {
+      const group = document.createElement("div");
+      group.className = "wording__group";
+      const heading = document.createElement("div");
+      heading.className = "wording__group-title";
+      heading.textContent = title;
+      group.appendChild(heading);
+
+      const grid = document.createElement("div");
+      grid.className = "grid grid--3";
+      fields.forEach(([key, text]) => {
+        const field = document.createElement("div");
+        field.className = "field";
+        const label = document.createElement("label");
+        label.htmlFor = "word-" + key;
+        label.textContent = text;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.id = "word-" + key;
+        input.dataset.word = key;
+        input.placeholder = wordingDefault(key);
+        input.autocomplete = "off";
+        field.appendChild(label);
+        field.appendChild(input);
+        grid.appendChild(field);
+      });
+      group.appendChild(grid);
+      host.appendChild(group);
+    });
+  }
+
+  function fillWording() {
+    $$("[data-word]").forEach((input) => {
+      const key = input.dataset.word;
+      input.value = key === "currency" ? state.currency || "" : (state.labels || {})[key] || "";
+    });
+  }
+
+  function saveWordingAsDefault() {
+    const labels = {};
+    Object.keys(Store.DEFAULT_LABELS).forEach((key) => {
+      const value = String((state.labels || {})[key] || "").trim();
+      if (value) labels[key] = value;
+    });
+    const currency = String(state.currency || "").trim() || Store.DEFAULT_CURRENCY;
+    if (!Store.saveBusiness({ labels: labels, currency: currency })) {
+      toast("Could not save — this device's storage is full.", "error");
+      return;
+    }
+    business = Store.getBusiness();
+    toast("Wording saved as your default");
+  }
+
+  function restoreWording() {
+    state.labels = Object.assign({}, Store.DEFAULT_LABELS);
+    state.currency = Store.DEFAULT_CURRENCY;
+    fillWording();
+    renderItems();
+    markDirty();
+    refresh();
+    toast("Original wording restored on this invoice", "info");
   }
 
   /* --- Validation --------------------------------------------------------- */
@@ -400,6 +514,7 @@ const App = (() => {
     );
     if (state.items.length === 0) state.items = [blankItem()];
     state.client = Object.assign({ name: "", company: "", email: "", phone: "", address: "" }, state.client);
+    withWording(state);
     dirty = false;
     clearErrors();
     fillForm();
@@ -422,7 +537,7 @@ const App = (() => {
     );
     if (copy.items.length === 0) copy.items = [blankItem()];
 
-    state = copy;
+    state = withWording(copy);
     dirty = true;
     clearErrors();
     fillForm();
@@ -584,6 +699,18 @@ const App = (() => {
       });
     });
 
+    $("#wordingFields").addEventListener("input", (event) => {
+      const input = event.target.closest("[data-word]");
+      if (!input) return;
+      const key = input.dataset.word;
+      if (key === "currency") state.currency = input.value;
+      else state.labels = Object.assign({}, state.labels, { [key]: input.value });
+      markDirty();
+      refresh();
+    });
+    $("#wordingSaveDefault").addEventListener("click", saveWordingAsDefault);
+    $("#wordingReset").addEventListener("click", restoreWording);
+
     $("#status").addEventListener("change", (event) => {
       state.status = event.target.value;
       markDirty();
@@ -700,9 +827,11 @@ const App = (() => {
         Object.assign(blankItem(), item, { id: item.id || Util.uid("item") })
       );
       if (state.items.length === 0) state.items = [blankItem()];
+      withWording(state);
       dirty = true;
     }
 
+    buildWording();
     bindForm();
     bindShortcuts();
     setupClientCombo();

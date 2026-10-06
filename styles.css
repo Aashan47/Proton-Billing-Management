@@ -436,6 +436,60 @@ button {
   margin-left: auto;
 }
 
+/* --- Invoice wording (collapsible card) ---------------------------------- */
+
+.wording__summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.wording__summary::-webkit-details-marker {
+  display: none;
+}
+
+.wording__sub {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.wording__chev {
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  flex: none;
+  color: var(--muted);
+  transition: transform var(--dur) var(--ease);
+}
+
+.wording[open] .wording__chev {
+  transform: rotate(180deg);
+}
+
+.wording__body {
+  margin-top: 16px;
+}
+
+.wording__group + .wording__group {
+  margin-top: 18px;
+}
+
+.wording__group-title {
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.wording__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 8px;
+}
+
 /* --- Fields ------------------------------------------------------------- */
 
 .grid {

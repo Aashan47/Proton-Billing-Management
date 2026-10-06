@@ -165,6 +165,22 @@
       </div>
     </section>
 
+    <section class="card">
+      <details class="wording" id="wording">
+        <summary class="wording__summary">
+          <h2 class="card__title">Invoice wording</h2>
+          <span class="wording__sub">Headings, labels and currency printed on the invoice</span>
+          <svg class="wording__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div id="wordingFields" class="wording__body"></div>
+        <div class="wording__actions">
+          <button type="button" id="wordingSaveDefault" class="btn btn--sm">Save as my default</button>
+          <button type="button" id="wordingReset" class="btn btn--sm btn--ghost">Restore original wording</button>
+        </div>
+        <div class="field__hint">Changes apply to this invoice. Save as default to use them on every new invoice. A blank field prints the original text.</div>
+      </details>
+    </section>
+
     <div class="actionbar">
       <button type="button" id="btnPdf" class="btn btn--primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>

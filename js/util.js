@@ -29,8 +29,8 @@ const Util = (() => {
   }
 
   /** 1234567.5 -> "PKR 1,234,567.50" */
-  function money(value) {
-    return CURRENCY + " " + formatAmount(value);
+  function money(value, currency) {
+    return (currency || CURRENCY) + " " + formatAmount(value);
   }
 
   /** "2026-07-29" -> "29 July 2026". Parsed as local time, not UTC. */

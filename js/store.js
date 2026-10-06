@@ -10,6 +10,33 @@ const Store = (() => {
     theme: "proton.theme.v1",
   };
 
+  /* Every fixed word printed on the invoice. Each invoice carries its own copy
+     (editable in the "Invoice wording" card); `business.labels` holds the
+     user's saved defaults. A blank entry falls back to the text here. */
+  const DEFAULT_LABELS = {
+    title: "Invoice",
+    billedTo: "Billed to",
+    from: "From",
+    issued: "Issued",
+    due: "Due",
+    amountDue: "Amount due",
+    totalPaid: "Total paid",
+    payableBy: "Payable by",
+    paidStamp: "Paid in full",
+    description: "Description",
+    qty: "Qty",
+    rate: "Rate",
+    discount: "Discount",
+    amount: "Amount",
+    subtotal: "Subtotal",
+    totalDue: "Total due",
+    paymentInstructions: "Payment instructions",
+    terms: "Terms & conditions",
+    continued: "continued",
+  };
+
+  const DEFAULT_CURRENCY = "PKR";
+
   const DEFAULT_BUSINESS = {
     name: "Proton Studio",
     tagline: "Professional Film & Media Services",
@@ -26,6 +53,8 @@ const Store = (() => {
     defaultTerms:
       "Payment is due within 30 days of the invoice date.\nLate payments may incur a surcharge.\nAll deliverables remain the property of Proton Studio until payment clears in full.",
     footerNote: "Thank you for choosing Proton Studio",
+    currency: DEFAULT_CURRENCY,
+    labels: {},
   };
 
   function read(key, fallback) {
@@ -60,6 +89,30 @@ const Store = (() => {
 
   function saveBusiness(business) {
     return write(KEYS.business, Object.assign(getBusiness(), business));
+  }
+
+  /* --- Wording and currency ---------------------------------------------- */
+
+  function firstText(values) {
+    for (const value of values) {
+      if (typeof value === "string" && value.trim()) return value.trim();
+    }
+    return "";
+  }
+
+  /** The labels to print: invoice override, then saved default, then built-in. */
+  function labelsFor(invoice, business) {
+    const own = (invoice && invoice.labels) || {};
+    const saved = (business && business.labels) || {};
+    const out = {};
+    Object.keys(DEFAULT_LABELS).forEach((key) => {
+      out[key] = firstText([own[key], saved[key], DEFAULT_LABELS[key]]);
+    });
+    return out;
+  }
+
+  function currencyFor(invoice, business) {
+    return firstText([invoice && invoice.currency, business && business.currency, DEFAULT_CURRENCY]);
   }
 
   /* --- Invoice numbering ------------------------------------------------- */
@@ -227,6 +280,10 @@ const Store = (() => {
   return {
     KEYS,
     DEFAULT_BUSINESS,
+    DEFAULT_LABELS,
+    DEFAULT_CURRENCY,
+    labelsFor,
+    currencyFor,
     getBusiness,
     saveBusiness,
     peekNumber,

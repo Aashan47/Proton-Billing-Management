@@ -240,7 +240,7 @@ const Panels = (() => {
 
     const amount = document.createElement("div");
     amount.className = "hist__amount";
-    amount.textContent = Util.money(sums.total);
+    amount.textContent = Util.money(sums.total, Store.currencyFor(invoice, App.getBusiness()));
 
     const sub = document.createElement("div");
     sub.className = "hist__sub";

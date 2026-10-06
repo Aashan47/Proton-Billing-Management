@@ -67,6 +67,8 @@ const Pdf = (() => {
     const sums = Util.invoiceMath(items);
     const showDiscount = items.some((item) => Util.itemMath(item).discount > 0);
     const isPaid = invoice.status === "paid";
+    const L = Store.labelsFor(invoice, business);
+    const currency = ascii(Store.currencyFor(invoice, business));
 
     /* --- Drawing helpers ------------------------------------------------- */
 
@@ -97,7 +99,7 @@ const Pdf = (() => {
     }
 
     function label(str, x, y, align) {
-      tracked(str.toUpperCase(), x, y, 6.6, LABEL, 0.18, align, "bold");
+      tracked(String(str).toUpperCase(), x, y, 6.6, LABEL, 0.18, align, "bold");
     }
 
     /* --- Brand band and masthead ----------------------------------------- */
@@ -125,7 +127,7 @@ const Pdf = (() => {
       doc.text(ascii(business.tagline), nameX, TOP + 12);
     }
 
-    tracked("INVOICE", PAGE_W - M, TOP + 7, 19, INK, 0.3, "right", "normal");
+    tracked(L.title.toUpperCase(), PAGE_W - M, TOP + 7, 19, INK, 0.3, "right", "normal");
     font(9, "bold", ACCENT);
     doc.text(ascii(invoice.number || ""), PAGE_W - M, TOP + 13.5, { align: "right" });
 
@@ -143,9 +145,9 @@ const Pdf = (() => {
     const x2 = x1 + w1 + gap;
     const x3 = x2 + w2 + gap;
 
-    label("Billed to", x1, y);
-    label("From", x2, y);
-    label("Issued", x3, y);
+    label(L.billedTo, x1, y);
+    label(L.from, x2, y);
+    label(L.issued, x3, y);
 
     const client = invoice.client || {};
     let colY = y + 6;
@@ -184,7 +186,7 @@ const Pdf = (() => {
 
     font(9, "normal", INK);
     doc.text(ascii(Util.formatDate(invoice.issueDate)), x3, colY);
-    label("Due", x3, colY + 6);
+    label(L.due, x3, colY + 6);
     font(9, "normal", INK);
     doc.text(ascii(Util.formatDate(invoice.dueDate)), x3, colY + 10.5);
 
@@ -198,22 +200,22 @@ const Pdf = (() => {
     doc.setFillColor.apply(doc, isPaid ? SUCCESS : ACCENT);
     doc.rect(M, y, 1.1, heroH, "F");
 
-    label(isPaid ? "Total paid" : "Amount due", M + 6, y + 6.5);
+    label(isPaid ? L.totalPaid : L.amountDue, M + 6, y + 6.5);
 
     font(10.5, "normal", MUTED);
-    doc.text(Util.CURRENCY, M + 6, y + 14.5);
-    const curW = doc.getTextWidth(Util.CURRENCY);
+    doc.text(currency, M + 6, y + 14.5);
+    const curW = doc.getTextWidth(currency);
     font(19, "bold", INK);
     doc.text(Util.formatAmount(sums.total), M + 6 + curW + 1.8, y + 14.5);
 
     if (isPaid) {
-      const stamp = "PAID IN FULL";
+      const stamp = L.paidStamp.toUpperCase();
       const stampW = tracked(stamp, PAGE_W - M - 6 - 4, y + 11.6, 7.4, SUCCESS, 0.16, "right");
       doc.setDrawColor.apply(doc, SUCCESS);
       doc.setLineWidth(0.25);
       doc.roundedRect(PAGE_W - M - 6 - stampW - 7, y + 7.6, stampW + 7, 5.8, 2.9, 2.9, "S");
     } else {
-      label("Payable by", PAGE_W - M - 6, y + 6.5, "right");
+      label(L.payableBy, PAGE_W - M - 6, y + 6.5, "right");
       font(9, "normal", INK);
       doc.text(ascii(Util.formatDate(invoice.dueDate)), PAGE_W - M - 6, y + 12.5, {
         align: "right",
@@ -224,9 +226,9 @@ const Pdf = (() => {
 
     /* --- Line items -------------------------------------------------------- */
 
-    const head = ["Description", "Qty", "Rate"];
-    if (showDiscount) head.push("Discount");
-    head.push("Amount");
+    const head = [L.description, L.qty, L.rate];
+    if (showDiscount) head.push(L.discount);
+    head.push(L.amount);
 
     const body = items.map((item) => {
       const m = Util.itemMath(item);
@@ -240,8 +242,12 @@ const Pdf = (() => {
     // Numeric columns must hold the widest realistic amount on one line.
     // At 8.6pt with 2mm side padding, 28mm fits "99,999,999.00"; anything
     // narrower wraps seven-figure line items across two lines.
-    const numW = 28;
-    const qtyW = 13;
+    // Headings are user-editable, so a column also grows to keep its heading
+    // on one line (capped, so the description column keeps most of the row).
+    font(6.6, "bold");
+    const headW = (text, pad) => doc.getTextWidth(ascii(text).toUpperCase()) + pad + 1;
+    const numW = Math.min(40, Math.max(28, ...head.slice(2).map((text) => headW(text, 4))));
+    const qtyW = Math.min(30, Math.max(13, headW(L.qty, 6)));
     const money = { halign: "right", cellWidth: numW, cellPadding: { top: 2.9, bottom: 2.9, left: 2, right: 2 } };
     const cols = showDiscount ? 3 : 2;
     const columnStyles = {
@@ -259,7 +265,7 @@ const Pdf = (() => {
     let firstTablePage = true;
 
     doc.autoTable({
-      head: [head.map((cell) => cell.toUpperCase())],
+      head: [head.map((cell) => ascii(cell).toUpperCase())],
       body: body,
       startY: y,
       margin: { left: M, right: M, top: CONT_TOP, bottom: FOOT_H },
@@ -306,7 +312,7 @@ const Pdf = (() => {
         doc.setFillColor.apply(doc, ACCENT);
         doc.rect(0, 0, PAGE_W, 1.2, "F");
         font(7, "normal", LABEL);
-        doc.text(ascii((invoice.number || "Invoice") + " · continued"), M, CONT_TOP - 7);
+        doc.text(ascii((invoice.number || L.title) + " · " + L.continued), M, CONT_TOP - 7);
       },
     });
 
@@ -326,16 +332,16 @@ const Pdf = (() => {
       cursor += 5;
     }
 
-    sumRow("Subtotal", Util.formatAmount(sums.subtotal));
-    if (showDiscount) sumRow("Discount", "-" + Util.formatAmount(sums.discount), ACCENT);
+    sumRow(L.subtotal, Util.formatAmount(sums.subtotal));
+    if (showDiscount) sumRow(L.discount, "-" + Util.formatAmount(sums.discount), ACCENT);
 
     cursor += 1.4;
     rule(cursor, boxX, PAGE_W - M, INK, 0.3);
     cursor += 5.6;
-    label(isPaid ? "Total paid" : "Total due", boxX, cursor);
+    label(isPaid ? L.totalPaid : L.totalDue, boxX, cursor);
     font(13, "bold", INK);
     doc.text(
-      Util.CURRENCY + " " + Util.formatAmount(sums.total),
+      Util.money(sums.total, currency),
       PAGE_W - M,
       cursor + 0.6,
       { align: "right" }
@@ -344,8 +350,8 @@ const Pdf = (() => {
 
     /* --- Notes and terms ---------------------------------------------------- */
 
-    const notes = noteBlock(doc, invoice.notes, "Payment instructions");
-    const terms = noteBlock(doc, invoice.terms, "Terms & conditions");
+    const notes = noteBlock(doc, invoice.notes, L.paymentInstructions);
+    const terms = noteBlock(doc, invoice.terms, L.terms);
 
     if (notes && terms) {
       const colW = (CONTENT_W - 9) / 2;

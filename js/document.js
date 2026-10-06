@@ -30,7 +30,7 @@ const Doc = (() => {
   }
 
   function metaCol(label, html) {
-    return '<div><div class="doc__label">' + label + "</div>" + html + "</div>";
+    return '<div><div class="doc__label">' + e(label) + "</div>" + html + "</div>";
   }
 
   function itemRows(items, showDiscount) {
@@ -63,6 +63,8 @@ const Doc = (() => {
     const showDiscount = items.some((item) => Util.itemMath(item).discount > 0);
     const isPaid = invoice.status === "paid";
     const logo = business.logo || DEFAULT_LOGO_DATA_URL;
+    const L = Store.labelsFor(invoice, business);
+    const currency = Store.currencyFor(invoice, business);
 
     /* --- Masthead --- */
 
@@ -76,7 +78,7 @@ const Doc = (() => {
       "</div>" +
       "</div>" +
       '<div class="doc__title-block">' +
-      '<div class="doc__title">Invoice</div>' +
+      '<div class="doc__title">' + e(L.title) + "</div>" +
       '<div class="doc__number">' + e(invoice.number || "—") + "</div>" +
       "</div>" +
       "</header>";
@@ -90,19 +92,19 @@ const Doc = (() => {
     const meta =
       '<section class="doc__meta">' +
       metaCol(
-        "Billed to",
+        L.billedTo,
         '<div class="doc__party-name">' + e(client.name || "—") + "</div>" +
           (clientLines ? '<div class="doc__party-lines">' + e(clientLines) + "</div>" : "")
       ) +
       metaCol(
-        "From",
+        L.from,
         '<div class="doc__party-name doc__party-name--sm">' + e(business.name || "") + "</div>" +
           (bizLines ? '<div class="doc__party-lines">' + e(bizLines) + "</div>" : "")
       ) +
       metaCol(
-        "Issued",
+        L.issued,
         '<div class="doc__date">' + e(Util.formatDate(invoice.issueDate)) + "</div>" +
-          '<div class="doc__label doc__label--inline">Due</div>' +
+          '<div class="doc__label doc__label--inline">' + e(L.due) + "</div>" +
           '<div class="doc__date">' + e(Util.formatDate(invoice.dueDate)) + "</div>"
       ) +
       "</section>";
@@ -112,16 +114,16 @@ const Doc = (() => {
     const hero =
       '<section class="doc__hero' + (isPaid ? " doc__hero--paid" : "") + '">' +
       "<div>" +
-      '<div class="doc__label">' + (isPaid ? "Total paid" : "Amount due") + "</div>" +
+      '<div class="doc__label">' + e(isPaid ? L.totalPaid : L.amountDue) + "</div>" +
       '<div class="doc__hero-amount">' +
-      '<span class="doc__hero-cur">' + Util.CURRENCY + "</span> " +
+      '<span class="doc__hero-cur">' + e(currency) + "</span> " +
       Util.formatAmount(sums.total) +
       "</div>" +
       "</div>" +
       '<div class="doc__hero-side">' +
       (isPaid
-        ? '<span class="doc__stamp">Paid in full</span>'
-        : '<div class="doc__label">Payable by</div><div class="doc__date">' +
+        ? '<span class="doc__stamp">' + e(L.paidStamp) + "</span>"
+        : '<div class="doc__label">' + e(L.payableBy) + '</div><div class="doc__date">' +
           e(Util.formatDate(invoice.dueDate)) +
           "</div>") +
       "</div>" +
@@ -145,11 +147,11 @@ const Doc = (() => {
       ? '<table class="doc__table">' +
         colgroup +
         "<thead><tr>" +
-        "<th>Description</th>" +
-        '<th class="c">Qty</th>' +
-        "<th>Rate</th>" +
-        (showDiscount ? "<th>Discount</th>" : "") +
-        "<th>Amount</th>" +
+        "<th>" + e(L.description) + "</th>" +
+        '<th class="c">' + e(L.qty) + "</th>" +
+        "<th>" + e(L.rate) + "</th>" +
+        (showDiscount ? "<th>" + e(L.discount) + "</th>" : "") +
+        "<th>" + e(L.amount) + "</th>" +
         "</tr></thead>" +
         "<tbody>" + itemRows(items, showDiscount) + "</tbody>" +
         "</table>"
@@ -157,17 +159,17 @@ const Doc = (() => {
 
     const sumsBlock =
       '<section class="doc__sums">' +
-      '<div class="doc__sum-row"><span>Subtotal</span><span>' +
+      '<div class="doc__sum-row"><span>' + e(L.subtotal) + "</span><span>" +
       Util.formatAmount(sums.subtotal) +
       "</span></div>" +
       (showDiscount
-        ? '<div class="doc__sum-row doc__sum-row--off"><span>Discount</span><span>−' +
+        ? '<div class="doc__sum-row doc__sum-row--off"><span>' + e(L.discount) + "</span><span>−" +
           Util.formatAmount(sums.discount) +
           "</span></div>"
         : "") +
       '<div class="doc__sum-total">' +
-      '<span class="doc__label">' + (isPaid ? "Total paid" : "Total due") + "</span>" +
-      "<span>" + Util.CURRENCY + " " + Util.formatAmount(sums.total) + "</span>" +
+      '<span class="doc__label">' + e(isPaid ? L.totalPaid : L.totalDue) + "</span>" +
+      "<span>" + e(Util.money(sums.total, currency)) + "</span>" +
       "</div>" +
       "</section>";
 
@@ -179,11 +181,11 @@ const Doc = (() => {
       notesHtml || termsHtml
         ? '<section class="doc__notes' + (notesHtml && termsHtml ? " doc__notes--two" : "") + '">' +
           (notesHtml
-            ? '<div><div class="doc__label doc__label--rule">Payment instructions</div>' +
+            ? '<div><div class="doc__label doc__label--rule">' + e(L.paymentInstructions) + "</div>" +
               '<div class="doc__note-body">' + notesHtml + "</div></div>"
             : "") +
           (termsHtml
-            ? '<div><div class="doc__label doc__label--rule">Terms &amp; conditions</div>' +
+            ? '<div><div class="doc__label doc__label--rule">' + e(L.terms) + "</div>" +
               '<div class="doc__note-body">' + termsHtml + "</div></div>"
             : "") +
           "</section>"
