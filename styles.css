@@ -137,6 +137,13 @@ button {
   color: var(--ink);
 }
 
+/* The paper stays light in dark mode, so its selection must too — the themed
+   tokens would paint a dark block with pale text over the white page. */
+.paper ::selection {
+  background: #fbe3c4;
+  color: #1c1917;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
